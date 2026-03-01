@@ -1,0 +1,123 @@
+{
+  "menu": [
+    {
+      "url": "/",
+      "name": "Dashboards",
+      "icon": "menu-icon tf-icons ti ti-smart-home",
+      "slug": "dashboard-analytics"
+    },
+ {
+      "name": "Stores",
+      "icon": "menu-icon tf-icons ti ti-layout-sidebar",
+      "slug": "companies",
+      "submenu": [
+        {
+          "url": "/companies",
+          "name": "stores",
+          "slug": "companies"
+        }
+      ]
+    },
+     {
+      "name": "Customers",
+      "icon": "menu-icon tf-icons ti ti-layout-sidebar",
+      "slug": "Customers",
+      "submenu": [
+        {
+          "url": "/customers",
+          "name": "customers",
+          "slug": "customers"
+        }
+      ]
+    },
+    {
+      "name": "Branch",
+      "icon": "menu-icon tf-icons ti ti-layout-sidebar",
+      "slug": "branches",
+      "submenu": [
+        {
+          "url": "/branches",
+          "name": "branches",
+          "slug": "branches"
+        }
+      ]
+    },
+    {
+      "name": "Category",
+      "icon": "menu-icon tf-icons ti ti-layout-sidebar",
+      "slug": "category",
+      "submenu": [
+        {
+          "url": "/category",
+          "name": "category",
+          "slug": "category"
+        }
+      ]
+    },
+    {
+      "name": "Bundle",
+      "icon": "menu-icon tf-icons ti ti-layout-sidebar",
+      "slug": "bundel",
+      "submenu": [
+        {
+          "url": "/bundels",
+          "name": "bundles",
+          "slug": "bundels"
+        }
+      ]
+    },
+     {
+      "name": "Reviews",
+      "icon": "menu-icon tf-icons ti ti-layout-sidebar",
+      "slug": "reviews",
+      "submenu": [
+        {
+          "url": "/reviews",
+          "name": "reviews",
+          "slug": "reviews"
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "icon": "menu-icon tf-icons ti ti-layout-sidebar",
+      "slug": "order",
+      "submenu": [
+        {
+          "url": "/orders",
+          "name": "orders",
+          "slug": "orders"
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "icon": "menu-icon tf-icons ti ti-layout-sidebar",
+      "slug": "settings",
+      "submenu": [
+        {
+          "url": "/setting",
+          "name": "App setting",
+          "slug": "app_setting"
+        }
+      ]
+    },
+    {
+      "name": "Roles & Permissions",
+      "icon": "menu-icon tf-icons ti ti-settings",
+      "slug": "app-access",
+      "submenu": [
+        {
+          "url": "/roles",
+          "name": "Roles",
+          "slug": "app-access-roles"
+        },
+        {
+          "url": "/users",
+          "name": "List",
+          "slug": "app-user-list"
+        }
+      ]
+    }
+  ]
+}

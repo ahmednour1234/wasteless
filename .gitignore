@@ -1,0 +1,12 @@
+/vendor/
+/node_modules/
+/storage/**
+!/storage/app/public
+!/storage/app/public/**
+/bootstrap/cache/*
+.env
+.env.*
+*.log
+/public/storage
+northsea/
+*.zip
