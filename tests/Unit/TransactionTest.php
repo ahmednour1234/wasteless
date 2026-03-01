@@ -100,8 +100,8 @@ class TransactionTest extends TestCase
             'failure_redirect_url' => 'https://example.com/failure-redirect',
         ]);
 
-        $this->assertIsFloat($transaction->amount);
-        $this->assertEquals(100.50, $transaction->amount);
+        $this->assertIsNumeric($transaction->amount);
+        $this->assertEquals('100.50', (string) $transaction->amount);
     }
 
     public function test_transaction_status_constants(): void
