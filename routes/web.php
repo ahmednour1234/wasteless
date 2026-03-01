@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\dashboard\CompanyController;
 use App\Http\Controllers\dashboard\CustomerController;
+use App\Http\Controllers\dashboard\TransactionController;
 
 Route::middleware('auth')
   ->get('/', [Analytics::class, 'index'])
@@ -42,6 +43,8 @@ Route::middleware('auth')
 Route::middleware('auth')->group(function () {
      Route::get('/orders', [\App\Http\Controllers\dashboard\OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{orderId}', [\App\Http\Controllers\dashboard\OrderController::class, 'show'])->name('orders.show');
+  Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+  Route::get('/transactions/{id}', [TransactionController::class, 'show'])->name('transactions.show');
   Route::resource('companies', CompanyController::class)->only(['index', 'show']);
   Route::patch('companies/{company}/toggle', [CompanyController::class, 'toggleStatus'])->name('companies.toggle');
 Route::put('companies/{company}/update-password', [CompanyController::class, 'updatePassword'])->name('companies.updatePassword');

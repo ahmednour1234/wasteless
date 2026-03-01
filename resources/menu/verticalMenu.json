@@ -91,6 +91,18 @@
       ]
     },
     {
+      "name": "Transactions",
+      "icon": "menu-icon tf-icons ti ti-credit-card",
+      "slug": "transactions",
+      "submenu": [
+        {
+          "url": "/transactions",
+          "name": "transactions",
+          "slug": "transactions"
+        }
+      ]
+    },
+    {
       "name": "Settings",
       "icon": "menu-icon tf-icons ti ti-layout-sidebar",
       "slug": "settings",
