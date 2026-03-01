@@ -11,9 +11,12 @@ use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Bundle;
 use App\Models\Customer;
+use App\Models\Transaction;
 use App\Http\Resources\OrderResource;
+use App\Services\PaymentService;
 use Exception;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -39,9 +42,8 @@ class OrderController extends Controller
 
         return new OrderResource($order);
     }
- public function store(Request $request)
+    public function store(Request $request)
     {
-        // 1) Validate request
         $validator = Validator::make($request->all(), [
             'items'                 => 'required|array|min:1',
             'items.*.bundle_id'     => 'required|exists:bundles,id',
@@ -49,6 +51,7 @@ class OrderController extends Controller
             'address'               => 'nullable|string',
             'name'                  => 'nullable|string',
             'phone'                 => 'nullable|string',
+            'payment_type'          => 'nullable|in:whish_money,omt_pay,bank',
         ]);
 
         if ($validator->fails()) {
@@ -58,23 +61,26 @@ class OrderController extends Controller
             ], 422);
         }
 
-        // 2) Get authenticated customer
         $customer = Customer::findOrFail(Auth::id());
+        $paymentType = $request->input('payment_type', 'whish_money');
 
         $totalSub      = 0;
         $totalDiscount = 0;
         $orderItems    = [];
 
-        DB::beginTransaction();
         try {
             foreach ($request->items as $item) {
-                // 3) Load bundle and check availability
                 $bundle = Bundle::where('id', $item['bundle_id'])
                     ->where('active', 1)
                     ->first();
 
+                if (!$bundle) {
+                    return response()->json([
+                        'status'  => false,
+                        'message' => 'Bundle not found or inactive',
+                    ], 404);
+                }
 
-                // 4) Pricing calculations
                 $originalPrice = $bundle->price;
                 $finalPrice    = $bundle->price_after_discount ?? $originalPrice;
                 $discount      = $originalPrice - $finalPrice;
@@ -84,9 +90,8 @@ class OrderController extends Controller
                 $totalSub      += $total;
                 $totalDiscount += $discount * $quantity;
 
-                // 5) Prepare order items data
                 $orderItems[] = [
-                    'bundle'    => $bundle,
+                    'bundle'    => $bundle->toArray(),
                     'quantity'  => $quantity,
                     'price'     => $originalPrice,
                     'discount'  => $discount,
@@ -95,51 +100,59 @@ class OrderController extends Controller
                 ];
             }
 
-            // 6) Determine name and phone
             $orderName  = $request->input('name')  ?: $customer->name;
             $orderPhone = $request->input('phone') ?: $customer->phone;
+            $totalAmount = $totalSub - $totalDiscount;
 
-            // 7) Create the order
-            $order = Order::create([
-                'customer_id'    => $customer->id,
-                'status'         => 'pending',
-                'sub_total'      => $totalSub,
-                'total_discount' => $totalDiscount,
-                'delivery'       => 0,
-                'address'        => $request->input('address', ''),
-                'name'           => $orderName,
-                'phone'          => $orderPhone,
+            $baseUrl = config('app.url') . '/api';
+            
+            do {
+                $externalId = (string) (time() . rand(10000, 99999));
+            } while (Transaction::where('external_id', $externalId)->exists());
+
+            $transaction = Transaction::create([
+                'external_id' => $externalId,
+                'payment_type' => $paymentType,
+                'amount' => $totalAmount,
+                'currency' => 'LBP',
+                'status' => Transaction::STATUS_PENDING,
+                'invoice' => 'Order Payment - ' . $orderName,
+                'success_callback_url' => $baseUrl . '/user/payments/callback/success',
+                'failure_callback_url' => $baseUrl . '/user/payments/callback/failure',
+                'success_redirect_url' => $request->input('success_redirect_url', $baseUrl . '/user/orders'),
+                'failure_redirect_url' => $request->input('failure_redirect_url', $baseUrl . '/user/orders'),
+                'metadata' => [
+                    'customer_id' => $customer->id,
+                    'items' => $orderItems,
+                    'address' => $request->input('address', ''),
+                    'name' => $orderName,
+                    'phone' => $orderPhone,
+                    'sub_total' => $totalSub,
+                    'total_discount' => $totalDiscount,
+                ],
             ]);
 
-            // 8) Save order details and decrement stock
-            foreach ($orderItems as $item) {
-                OrderDetail::create([
-                    'order_id'    => $order->id,
-                    'bundle_id'   => $item['bundle']->id,
-                    'company_id'  => $item['bundle']->company_id,
-                    'branch_id'   => $item['bundle']->branch_id,
-                    'category_id' => $item['bundle']->category_id,
-                    'quantity'    => $item['quantity'],
-                    'price'       => $item['price'],
-                    'discount'    => $item['discount'],
-                    'total'       => $item['total'],
-                    'bundles'     => $item['snapshot'],
-                    'status'      => 'pending',
-                ]);
+            $paymentService = new PaymentService();
+            $paymentResult = $paymentService->initiatePayment($transaction, [
+                'items' => $orderItems,
+                'customer' => $customer,
+            ]);
 
-                $item['bundle']->decrement('stock', $item['quantity']);
+            if (!$paymentResult['success']) {
+                $transaction->update(['status' => Transaction::STATUS_FAILED]);
+                return response()->json([
+                    'status'  => false,
+                    'message' => $paymentResult['message'] ?? 'Payment initiation failed',
+                ], 400);
             }
 
-            DB::commit();
-
             return response()->json([
-                'status'   => true,
-                'message'  => 'تم إنشاء الطلب بنجاح',
-                'order_id' => $order->id,
+                'status'         => true,
+                'message'        => 'Payment initiated successfully',
+                'transaction_id' => $transaction->id,
+                'collect_url'    => $paymentResult['collect_url'],
             ], 201);
         } catch (Exception $e) {
-            DB::rollBack();
-
             return response()->json([
                 'status'  => false,
                 'message' => $e->getMessage(),

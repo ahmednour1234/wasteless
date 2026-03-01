@@ -31,4 +31,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'whish' => [
+        'channel' => env('WHISH_CHANNEL'),
+        'secret' => env('WHISH_SECRET'),
+        'website_url' => env('WHISH_WEBSITE_URL'),
+        'env' => env('WHISH_ENV', 'sandbox'),
+    ],
+
 ];

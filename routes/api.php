@@ -13,6 +13,7 @@ use App\Http\Controllers\API\User\BundleController as PublicBundleController;
 use App\Http\Controllers\API\User\CategoryController;
 use App\Http\Controllers\API\User\FavouriteController;
 use App\Http\Controllers\API\User\OrderController;
+use App\Http\Controllers\API\User\PaymentController;
 
 Route::prefix('companies')->group(function () {
   Route::post('signup',     [CompanyAuthController::class, 'signup']);
@@ -68,6 +69,11 @@ Route::prefix('user')->group(function () {
     Route::get('reviews', [ReviewController::class, 'index']);
     Route::post('reviews', [ReviewController::class, 'store'])->middleware('auth:sanctum');
 });
+  Route::prefix('payments')->group(function () {
+    Route::post('callback/success', [PaymentController::class, 'successCallback']);
+    Route::post('callback/failure', [PaymentController::class, 'failureCallback']);
+  });
+
   Route::middleware('auth:sanctum')->group(function () {
             Route::prefix('favourites')->group(function () {
                     Route::get('/{bundleId}', [FavouriteController::class, 'show']);
@@ -81,6 +87,10 @@ Route::prefix('user')->group(function () {
     Route::get('/{id}', [OrderController::class, 'show']);
     Route::post('/', [OrderController::class, 'store']);
             });
+
+    Route::prefix('payments')->group(function () {
+      Route::get('/{transactionId}/status', [PaymentController::class, 'checkStatus']);
+    });
 
     Route::get('profile', [AuthUserController::class, 'me']);      // جلب البيانات
     Route::post('profile', [AuthUserController::class, 'update']);  // تحديث البيانات
