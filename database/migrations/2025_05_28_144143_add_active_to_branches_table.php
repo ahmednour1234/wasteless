@@ -8,17 +8,26 @@ class AddActiveToBranchesTable extends Migration
 {
     public function up()
     {
-        Schema::table('branches', function (Blueprint $table) {
-            $table->boolean('active')
-                  ->default(true)
-                  ->after('company_id');
-        });
+        if (!Schema::hasColumn('branches', 'active')) {
+            Schema::table('branches', function (Blueprint $table) {
+                $table->boolean('active')
+                      ->default(true)
+                      ->after('company_id');
+            });
+        }
+        if (!Schema::hasColumn('branches', 'main')) {
+            Schema::table('branches', function (Blueprint $table) {
+                $table->boolean('main')
+                      ->default(false)
+                      ->after('company_id');
+            });
+        }
     }
 
     public function down()
     {
         Schema::table('branches', function (Blueprint $table) {
-            $table->dropColumn('active');
+            $table->dropColumn(['active', 'main']);
         });
     }
 }

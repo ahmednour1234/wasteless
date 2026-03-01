@@ -20,6 +20,8 @@ class CreateBranchesTable extends Migration
             $table->foreignId('company_id')
                   ->constrained()
                   ->onDelete('cascade');
+            $table->boolean('main')->default(false);
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }
