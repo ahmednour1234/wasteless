@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
+    use HasFactory;
     const PAYMENT_TYPE_WHISH_MONEY = 'whish_money';
     const PAYMENT_TYPE_OMT_PAY = 'omt_pay';
     const PAYMENT_TYPE_BANK = 'bank';
