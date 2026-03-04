@@ -35,7 +35,7 @@ $nowInCairo = Carbon::now('Africa/Cairo');
             'price_after_discount' => $this->price_after_discount,
             'stock'                => $this->stock,
             'opening_time'         => $this->opening_time,
-            'ended_time'           => $this->ended_time,
+            'ended_time'           => $ended,
                    'minutes_left'   => $minutesLeft,
         // مثال: "5 دقائق" أو "انتهت"
         'time_left_text' => $minutesLeft > 0
