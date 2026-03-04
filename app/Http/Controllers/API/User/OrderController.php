@@ -104,7 +104,8 @@ class OrderController extends Controller
             $orderPhone = $request->input('phone') ?: $customer->phone;
             $totalAmount = $totalSub - $totalDiscount;
 
-            $baseUrl = config('app.url') . '/api';
+            $appUrl = config('app.url');
+            $baseUrl = (strpos($appUrl, 'http://') === 0 ? str_replace('http://', 'https://', $appUrl) : $appUrl) . '/api';
             
             do {
                 $externalId = (string) (time() . rand(10000, 99999));
