@@ -24,7 +24,7 @@ class OrderPaymentTest extends TestCase
         \Illuminate\Support\Facades\Config::set('services.whish.secret', 'test_secret');
         \Illuminate\Support\Facades\Config::set('services.whish.website_url', 'https://test.com');
         \Illuminate\Support\Facades\Config::set('services.whish.env', 'sandbox');
-        \Illuminate\Support\Facades\Config::set('app.url', 'http://localhost');
+        \Illuminate\Support\Facades\Config::set('app.url', 'https://wastelesslb.com/public');
     }
 
     public function test_order_store_creates_transaction_and_initiates_payment(): void
