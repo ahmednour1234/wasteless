@@ -45,7 +45,7 @@ public function signup(Request $request)
         ? FileHelper::uploadImage($request->file('logo'), 'uploads/logos')
         : null;
 
-    $verificationCode = rand(100000, 999999);
+    $verificationCode = app()->environment(['local', 'testing']) ? '111111' : rand(100000, 999999);
 
     // بدون Hash::make بفضل cast
     $company = Company::create([
@@ -182,7 +182,7 @@ public function resendOtp(Request $request)
     $company = Company::where('email', $request->email)->firstOrFail();
 
     // توليد كود تحقق جديد
-    $verificationCode = rand(100000, 999999);
+    $verificationCode = app()->environment(['local', 'testing']) ? '111111' : rand(100000, 999999);
 
     // تحديث الكود في قاعدة البيانات
     $company->update([
