@@ -150,6 +150,7 @@ class OrderController extends Controller
                 'status'         => true,
                 'message'        => 'Payment initiated successfully',
                 'transaction_id' => $transaction->id,
+                'payment_type'   => $paymentType,
                 'collect_url'    => $paymentResult['collect_url'],
             ], 201);
         } catch (Exception $e) {
