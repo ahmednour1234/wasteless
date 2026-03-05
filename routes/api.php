@@ -71,6 +71,7 @@ Route::prefix('user')->group(function () {
 });
   Route::prefix('payments')->group(function () {
     Route::post('callback/success', [PaymentController::class, 'successCallback']);
+    Route::get('callback/success', [PaymentController::class, 'successRedirect']);
     Route::post('callback/failure', [PaymentController::class, 'failureCallback']);
   });
 
