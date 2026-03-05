@@ -161,7 +161,7 @@ class PaymentController extends Controller
 
     public function successRedirect(Request $request)
     {
-        $externalId = $request->input('externalId');
+        $externalId = $request->input('externalId') ?? $request->query('externalId');
         
         if (!$externalId) {
             return response()->json([
@@ -191,10 +191,17 @@ class PaymentController extends Controller
         $paymentService = new PaymentService();
         $statusResult = $paymentService->checkPaymentStatus($transaction);
 
-        if (!$statusResult['success'] || $statusResult['status'] !== 'success') {
+        if (!$statusResult['success']) {
             return response()->json([
                 'status' => false,
-                'message' => 'Payment verification failed',
+                'message' => $statusResult['message'] ?? 'Payment verification failed',
+            ], 400);
+        }
+
+        if ($statusResult['status'] !== 'success') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Payment is not successful. Status: ' . $statusResult['status'],
             ], 400);
         }
 
