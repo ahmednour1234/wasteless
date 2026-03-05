@@ -16,7 +16,7 @@ class PaymentController extends Controller
 {
     public function successCallback(Request $request)
     {
-        $externalId = $request->input('externalId');
+        $externalId = $request->input('externalId') ?? $request->query('externalId');
         
         if (!$externalId) {
             return response()->json([

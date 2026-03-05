@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::get('orders/{orderId}', [\App\Http\Controllers\dashboard\OrderController::class, 'show'])->name('orders.show');
   Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
   Route::get('/transactions/{id}', [TransactionController::class, 'show'])->name('transactions.show');
+  Route::post('/transactions/{id}/process', [TransactionController::class, 'processTransaction'])->name('transactions.process');
   Route::resource('companies', CompanyController::class)->only(['index', 'show']);
   Route::patch('companies/{company}/toggle', [CompanyController::class, 'toggleStatus'])->name('companies.toggle');
 Route::put('companies/{company}/update-password', [CompanyController::class, 'updatePassword'])->name('companies.updatePassword');

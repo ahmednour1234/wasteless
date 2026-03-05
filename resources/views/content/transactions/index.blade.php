@@ -129,7 +129,17 @@
           </td>
           <td>{{ $transaction->created_at->format('Y-m-d H:i') }}</td>
           <td>
-            <a href="{{ route('transactions.show', $transaction->id) }}" class="btn btn-sm btn-outline-info">View</a>
+            <div class="d-flex gap-1">
+              <a href="{{ route('transactions.show', $transaction->id) }}" class="btn btn-sm btn-outline-info">View</a>
+              @if($transaction->status === 'pending' && !$transaction->order_id)
+                <form action="{{ route('transactions.process', $transaction->id) }}" method="POST" style="display: inline;">
+                  @csrf
+                  <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to process this transaction?')">
+                    Process
+                  </button>
+                </form>
+              @endif
+            </div>
           </td>
         </tr>
         @empty
