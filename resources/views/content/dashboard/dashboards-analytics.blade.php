@@ -191,6 +191,48 @@
     </div>
   </div>
 </div>
+<div class="row g-4 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between">
+          <div class="content-left">
+            <span>@lang("Total Orders Sales")</span>
+            <div class="d-flex align-items-center my-2">
+              <h3 class="mb-0 me-2">${{ number_format($totalOrdersSales ?? 0, 2) }}</h3>
+            </div>
+            <p class="mb-0">@lang("Total Sales from Orders")</p>
+          </div>
+          <div class="avatar">
+            <span class="avatar-initial rounded bg-label-secondary">
+              <i class="ti ti-shopping-cart ti-sm"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between">
+          <div class="content-left">
+            <span>@lang("Total Paid")</span>
+            <div class="d-flex align-items-center my-2">
+              <h3 class="mb-0 me-2">${{ number_format($totalPaid ?? 0, 2) }}</h3>
+            </div>
+            <p class="mb-0">@lang("Total Amount Paid")</p>
+          </div>
+          <div class="avatar">
+            <span class="avatar-initial rounded bg-label-dark">
+              <i class="ti ti-credit-card ti-sm"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="row">
   <!-- Earning Reports -->
   <div class="col-lg-6 mb-4">

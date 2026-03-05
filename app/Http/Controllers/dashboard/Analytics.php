@@ -37,9 +37,11 @@ class Analytics extends Controller
     $totalCommission = Transaction::where('status', 'success')->sum('commission_amount');
     $totalOrdersCommission = Order::sum('commission_amount');
     $totalRevenue = Transaction::where('status', 'success')->sum('amount');
+    $totalPaid = $totalRevenue;
+    $totalOrdersSales = Order::selectRaw('SUM(sub_total + delivery - total_discount) as total')->value('total') ?? 0;
     $settings = Setting::first();
     $commissionPercentage = $settings->commission_percentage ?? 0;
 
-    return view('content.dashboard.dashboards-analytics', compact('storesCount', 'admincount', 'Bundels', 'Branches', 'usercount', 'ordercount', 'surveycount','companynotactives', 'totalCommission', 'totalOrdersCommission', 'totalRevenue', 'commissionPercentage'));
+    return view('content.dashboard.dashboards-analytics', compact('storesCount', 'admincount', 'Bundels', 'Branches', 'usercount', 'ordercount', 'surveycount','companynotactives', 'totalCommission', 'totalOrdersCommission', 'totalRevenue', 'commissionPercentage', 'totalOrdersSales', 'totalPaid'));
   }
 }
