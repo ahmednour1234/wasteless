@@ -54,6 +54,19 @@
         <img src="{{ asset($settings->img) }}" alt="Logo Image" class="mt-2" style="width: 100px; height: auto;">
       @endif
     </div>
+
+    <div class="col-md-6">
+      <label class="form-label">@lang('Commission Percentage') (%)</label>
+      <input type="number"
+             class="form-control"
+             name="commission_percentage"
+             step="0.01"
+             min="0"
+             max="100"
+             placeholder="@lang('Commission Percentage')"
+             value="{{ old('commission_percentage', $settings->commission_percentage ?? 0) }}" />
+      <small class="text-muted">@lang('The percentage that will be taken from each successful order payment')</small>
+    </div>
   </div>
 
   <div class="pt-4">

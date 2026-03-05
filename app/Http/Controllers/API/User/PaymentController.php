@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\Setting;
 use App\Services\PaymentService;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -61,15 +62,22 @@ class PaymentController extends Controller
                 throw new Exception('Invalid transaction metadata');
             }
 
+            $totalAmount = ($metadata['sub_total'] ?? 0) - ($metadata['total_discount'] ?? 0);
+            $settings = Setting::first();
+            $commissionPercentage = $settings->commission_percentage ?? 0;
+            $commissionAmount = ($totalAmount * $commissionPercentage) / 100;
+
             $order = Order::create([
-                'customer_id'    => $customerId,
-                'status'         => 'pending',
-                'sub_total'      => $metadata['sub_total'] ?? 0,
-                'total_discount' => $metadata['total_discount'] ?? 0,
-                'delivery'       => 0,
-                'address'        => $metadata['address'] ?? '',
-                'name'           => $metadata['name'] ?? '',
-                'phone'          => $metadata['phone'] ?? '',
+                'customer_id'         => $customerId,
+                'status'              => 'pending',
+                'sub_total'           => $metadata['sub_total'] ?? 0,
+                'total_discount'      => $metadata['total_discount'] ?? 0,
+                'delivery'            => 0,
+                'commission_percentage' => $commissionPercentage,
+                'commission_amount'   => $commissionAmount,
+                'address'             => $metadata['address'] ?? '',
+                'name'                => $metadata['name'] ?? '',
+                'phone'               => $metadata['phone'] ?? '',
             ]);
 
             foreach ($orderItems as $itemData) {
@@ -96,8 +104,10 @@ class PaymentController extends Controller
             }
 
             $transaction->update([
-                'order_id' => $order->id,
-                'status' => Transaction::STATUS_SUCCESS,
+                'order_id'             => $order->id,
+                'status'               => Transaction::STATUS_SUCCESS,
+                'commission_percentage' => $commissionPercentage,
+                'commission_amount'    => $commissionAmount,
             ]);
 
             DB::commit();

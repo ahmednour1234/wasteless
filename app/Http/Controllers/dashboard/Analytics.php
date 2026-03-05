@@ -9,6 +9,7 @@ use App\Models\Company;
 use Illuminate\Http\Request;
 use App\Models\Seller;
 use App\Models\Order;
+use App\Models\Transaction;
 use App\Models\Pdf;
 use App\Models\Project;
 use App\Models\Role;
@@ -32,7 +33,9 @@ class Analytics extends Controller
     $admincount = User::whereDate('created_at', Carbon::today())->count();
     $surveycount =  Pdf::whereDate('created_at', Carbon::today())->count();
 
+    $totalCommission = Transaction::where('status', 'success')->sum('commission_amount');
+    $totalOrdersCommission = Order::sum('commission_amount');
 
-    return view('content.dashboard.dashboards-analytics', compact('storesCount', 'admincount', 'Bundels', 'Branches', 'usercount', 'ordercount', 'surveycount','companynotactives'));
+    return view('content.dashboard.dashboards-analytics', compact('storesCount', 'admincount', 'Bundels', 'Branches', 'usercount', 'ordercount', 'surveycount','companynotactives', 'totalCommission', 'totalOrdersCommission'));
   }
 }

@@ -17,7 +17,7 @@ class TransactionFactory extends Factory
             'external_id' => (string) $this->faker->unique()->numerify('##########'),
             'payment_type' => Transaction::PAYMENT_TYPE_WHISH_MONEY,
             'amount' => $this->faker->randomFloat(2, 100, 1000),
-            'currency' => 'LBP',
+            'currency' => 'USD',
             'status' => Transaction::STATUS_PENDING,
             'collect_url' => null,
             'collect_status' => null,

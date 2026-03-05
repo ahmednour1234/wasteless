@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('external_id')->unique();
             $table->enum('payment_type', ['whish_money', 'omt_pay', 'bank'])->default('whish_money');
             $table->decimal('amount', 15, 2);
-            $table->string('currency', 3)->default('LBP');
+            $table->string('currency', 3)->default('USD');
             $table->enum('status', ['pending', 'success', 'failed', 'cancelled'])->default('pending');
             $table->text('collect_url')->nullable();
             $table->string('collect_status')->nullable();

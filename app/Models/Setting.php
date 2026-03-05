@@ -17,5 +17,6 @@ class Setting extends Model
     'img',
     'address',
     'phone',
+    'commission_percentage',
   ];
 }

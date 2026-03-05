@@ -36,6 +36,7 @@ public function store(Request $request)
         'phone' => 'required|string',
         'img' => 'nullable', // Validate image (nullable, max 2MB)
         'address' => 'nullable',
+        'commission_percentage' => 'nullable|numeric|min:0|max:100',
     ]);
 
     // Check if settings record exists

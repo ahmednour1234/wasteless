@@ -115,7 +115,7 @@ class OrderController extends Controller
                 'external_id' => $externalId,
                 'payment_type' => $paymentType,
                 'amount' => $totalAmount,
-                'currency' => 'LBP',
+                'currency' => 'USD',
                 'status' => Transaction::STATUS_PENDING,
                 'invoice' => 'Order Payment - ' . $orderName,
                 'success_callback_url' => $baseUrl . '/user/payments/callback/success',
