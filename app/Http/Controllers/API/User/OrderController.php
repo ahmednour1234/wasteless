@@ -120,8 +120,8 @@ class OrderController extends Controller
                 'invoice' => 'Order Payment - ' . $orderName,
                 'success_callback_url' => $baseUrl . '/user/payments/callback/success',
                 'failure_callback_url' => $baseUrl . '/user/payments/callback/failure',
-                'success_redirect_url' => $request->input('success_redirect_url', $baseUrl . '/api/user/payments/callback/success'),
-                'failure_redirect_url' => $request->input('failure_redirect_url', $baseUrl . '/api/user/payments/callback/failure'),
+                'success_redirect_url' => $request->input('success_redirect_url', $baseUrl . '/user/payments/callback/success'),
+                'failure_redirect_url' => $request->input('failure_redirect_url', $baseUrl . '/user/payments/callback/failure'),
                 'metadata' => [
                     'customer_id' => $customer->id,
                     'items' => $orderItems,
