@@ -115,6 +115,46 @@
       <div class="card-body">
         <div class="d-flex align-items-start justify-content-between">
           <div class="content-left">
+            <span>@lang("Total Revenue")</span>
+            <div class="d-flex align-items-center my-2">
+              <h3 class="mb-0 me-2">${{ number_format($totalRevenue ?? 0, 2) }}</h3>
+            </div>
+            <p class="mb-0">@lang("Total Income")</p>
+          </div>
+          <div class="avatar">
+            <span class="avatar-initial rounded bg-label-info">
+              <i class="ti ti-chart-line ti-sm"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between">
+          <div class="content-left">
+            <span>@lang("Commission Percentage")</span>
+            <div class="d-flex align-items-center my-2">
+              <h3 class="mb-0 me-2">{{ number_format($commissionPercentage ?? 0, 2) }}%</h3>
+            </div>
+            <p class="mb-0">@lang("Commission Rate")</p>
+          </div>
+          <div class="avatar">
+            <span class="avatar-initial rounded bg-label-warning">
+              <i class="ti ti-percentage ti-sm"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-start justify-content-between">
+          <div class="content-left">
             <span>@lang("Total Commission")</span>
             <div class="d-flex align-items-center my-2">
               <h3 class="mb-0 me-2">${{ number_format($totalCommission ?? 0, 2) }}</h3>

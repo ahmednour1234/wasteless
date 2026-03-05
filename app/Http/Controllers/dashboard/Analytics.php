@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\Seller;
 use App\Models\Order;
 use App\Models\Transaction;
+use App\Models\Setting;
 use App\Models\Pdf;
 use App\Models\Project;
 use App\Models\Role;
@@ -35,7 +36,10 @@ class Analytics extends Controller
 
     $totalCommission = Transaction::where('status', 'success')->sum('commission_amount');
     $totalOrdersCommission = Order::sum('commission_amount');
+    $totalRevenue = Transaction::where('status', 'success')->sum('amount');
+    $settings = Setting::first();
+    $commissionPercentage = $settings->commission_percentage ?? 0;
 
-    return view('content.dashboard.dashboards-analytics', compact('storesCount', 'admincount', 'Bundels', 'Branches', 'usercount', 'ordercount', 'surveycount','companynotactives', 'totalCommission', 'totalOrdersCommission'));
+    return view('content.dashboard.dashboards-analytics', compact('storesCount', 'admincount', 'Bundels', 'Branches', 'usercount', 'ordercount', 'surveycount','companynotactives', 'totalCommission', 'totalOrdersCommission', 'totalRevenue', 'commissionPercentage'));
   }
 }
