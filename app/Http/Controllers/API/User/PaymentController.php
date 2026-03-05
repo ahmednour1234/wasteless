@@ -16,16 +16,23 @@ class PaymentController extends Controller
 {
     public function successCallback(Request $request)
     {
-        $externalId = $request->input('externalId') ?? $request->query('externalId');
-        
-        if (!$externalId) {
-            return response()->json([
-                'status' => false,
-                'message' => 'externalId is required',
-            ], 400);
-        }
+        $externalId = $request->input('externalId') 
+                   ?? $request->query('externalId')
+                   ?? $request->input('external_id')
+                   ?? $request->query('external_id')
+                   ?? ($request->json() ? $request->json()->get('externalId') : null)
+                   ?? ($request->json() ? $request->json()->get('external_id') : null);
 
-        $transaction = Transaction::where('external_id', $externalId)->first();
+        $transaction = null;
+
+        if ($externalId) {
+            $transaction = Transaction::where('external_id', $externalId)->first();
+        } else {
+            $transaction = Transaction::where('status', Transaction::STATUS_PENDING)
+                ->whereNull('order_id')
+                ->latest()
+                ->first();
+        }
 
         if (!$transaction) {
             return response()->json([
@@ -161,16 +168,23 @@ class PaymentController extends Controller
 
     public function successRedirect(Request $request)
     {
-        $externalId = $request->input('externalId') ?? $request->query('externalId');
-        
-        if (!$externalId) {
-            return response()->json([
-                'status' => false,
-                'message' => 'externalId is required',
-            ], 400);
-        }
+        $externalId = $request->input('externalId') 
+                   ?? $request->query('externalId')
+                   ?? $request->input('external_id')
+                   ?? $request->query('external_id')
+                   ?? ($request->json() ? $request->json()->get('externalId') : null)
+                   ?? ($request->json() ? $request->json()->get('external_id') : null);
 
-        $transaction = Transaction::where('external_id', $externalId)->first();
+        $transaction = null;
+
+        if ($externalId) {
+            $transaction = Transaction::where('external_id', $externalId)->first();
+        } else {
+            $transaction = Transaction::where('status', Transaction::STATUS_PENDING)
+                ->whereNull('order_id')
+                ->latest()
+                ->first();
+        }
 
         if (!$transaction) {
             return response()->json([
