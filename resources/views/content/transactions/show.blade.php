@@ -161,9 +161,9 @@
                         @endif
                       </td>
                       <td>{{ $detail->quantity }}</td>
-                      <td>{{ number_format($detail->price, 2) }} LBP</td>
-                      <td class="text-danger">-{{ number_format($detail->discount, 2) }} LBP</td>
-                      <td class="text-success">{{ number_format($detail->total, 2) }} LBP</td>
+                      <td>{{ number_format($detail->price, 2) }} USD</td>
+                      <td class="text-danger">-{{ number_format($detail->discount, 2) }} USD</td>
+                      <td class="text-success">{{ number_format($detail->total, 2) }} USD</td>
                       <td>
                         <span class="badge bg-info text-capitalize">{{ $detail->status }}</span>
                       </td>

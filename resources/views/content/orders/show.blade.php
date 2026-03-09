@@ -65,14 +65,14 @@
         <div class="col-md-4">
             <div class="card p-3 shadow-sm border-start border-danger border-4">
                 <strong>Discount</strong>
-                <div class="fs-5 text-danger">{{ number_format($order->total_discount, 2) }} Lbp</div>
+                <div class="fs-5 text-danger">{{ number_format($order->total_discount, 2) }} USD</div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card p-3 shadow-sm border-start border-success border-4">
                 <strong>Total</strong>
                 <div class="fs-5 text-success">
-                    {{ number_format($order->sub_total + $order->delivery - $order->total_discount, 2) }} Lbp
+                    {{ number_format($order->sub_total + $order->delivery - $order->total_discount, 2) }} USD
                 </div>
             </div>
         </div>
@@ -106,9 +106,9 @@
                             <td>{{ $detail->bundle->company->name ?? '—' }}</td>
                             <td>{{ $detail->bundle->branch->name ?? '—' }}</td>
                             <td>{{ $detail->quantity }}</td>
-                            <td>{{ number_format($detail->price, 2) }} Lbp</td>
-                            <td>{{ number_format($detail->discount, 2) }} Lbp</td>
-                            <td>{{ number_format($detail->total - ($detail->discount * $detail->quantity), 2) }} Lbp</td>
+                            <td>{{ number_format($detail->price, 2) }} USD</td>
+                            <td>{{ number_format($detail->discount, 2) }} USD</td>
+                            <td>{{ number_format($detail->total - ($detail->discount * $detail->quantity), 2) }} USD</td>
                             <td>
                                 <span class="badge bg-warning text-dark text-capitalize">{{ $detail->status }}</span>
                             </td>
