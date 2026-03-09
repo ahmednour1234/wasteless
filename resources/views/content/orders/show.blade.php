@@ -59,7 +59,7 @@
         <div class="col-md-4">
             <div class="card p-3 shadow-sm border-start border-primary border-4">
                 <strong>Subtotal</strong>
-                <div class="fs-5 text-primary">{{ number_format($order->sub_total, 2) }} Lpb</div>
+                <div class="fs-5 text-primary">{{ number_format($order->sub_total, 2) }} USD</div>
             </div>
         </div>
         <div class="col-md-4">

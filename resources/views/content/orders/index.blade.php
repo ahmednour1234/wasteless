@@ -108,10 +108,10 @@
           <td>{{ $order->id }}</td>
           <td>{{ $order->name }}</td>
           <td><span class="badge bg-info text-capitalize">{{ $order->status }}</span></td>
-          <td>{{ number_format($order->sub_total, 2) }} Lpb</td>
-          <td class="text-danger">-{{ number_format($order->total_discount, 2) }} Lpb</td>
+          <td>{{ number_format($order->sub_total, 2) }} USD</td>
+          <td class="text-danger">-{{ number_format($order->total_discount, 2) }} USD</td>
           <td class="text-success">
-            {{ number_format($order->sub_total + $order->delivery - $order->total_discount, 2) }} Lpb
+            {{ number_format($order->sub_total + $order->delivery - $order->total_discount, 2) }} USD
           </td>
           <td><span class="badge bg-secondary">{{ $order->details->count() }}</span></td>
           <td>
