@@ -128,6 +128,140 @@ class PaymentService
         }
     }
 
+    // -----------------------------------------------------------------------
+    // MPGS (Mastercard/NetCommerce) Hosted Checkout – bank payment
+    // -----------------------------------------------------------------------
+
+    public function initiateBankPayment(Transaction $transaction): array
+    {
+        $merchantId  = config('services.mpgs.merchant_id');
+        $apiPassword = config('services.mpgs.api_password');
+        $gatewayUrl  = rtrim(config('services.mpgs.gateway_url'), '/');
+        $apiVersion  = config('services.mpgs.api_version', '61');
+
+        $appUrl  = config('app.url');
+        $baseUrl = (str_starts_with($appUrl, 'http://') ? str_replace('http://', 'https://', $appUrl) : $appUrl) . '/api';
+
+        // Embed external_id in the return URL so we can identify the transaction
+        $returnUrl = $baseUrl . '/user/payments/bank/return?external_id=' . $transaction->external_id;
+
+        $url = "{$gatewayUrl}/api/rest/version/{$apiVersion}/merchant/{$merchantId}/session";
+
+        $payload = [
+            'apiOperation' => 'INITIATE_CHECKOUT',
+            'interaction'  => [
+                'operation' => 'PURCHASE',
+                'returnUrl' => $returnUrl,
+                'merchant'  => [
+                    'name' => config('app.name'),
+                ],
+            ],
+            'order' => [
+                'id'          => $transaction->external_id,
+                'amount'      => number_format((float) $transaction->amount, 2, '.', ''),
+                'currency'    => $transaction->currency,
+                'description' => $transaction->invoice,
+            ],
+        ];
+
+        try {
+            $response = Http::withBasicAuth('merchant.' . $merchantId, $apiPassword)
+                ->post($url, $payload);
+
+            $responseData = $response->json();
+
+            if ($response->successful() && isset($responseData['session']['id'])) {
+                $sessionId        = $responseData['session']['id'];
+                $successIndicator = $responseData['successIndicator'] ?? null;
+                $checkoutUrl      = "{$gatewayUrl}/checkout/pay/{$sessionId}?checkoutVersion=1.0.0";
+
+                $transaction->update([
+                    'collect_url' => $checkoutUrl,
+                    'status'      => Transaction::STATUS_PENDING,
+                    'metadata'    => array_merge($transaction->metadata ?? [], [
+                        'mpgs_session_id'        => $sessionId,
+                        'mpgs_success_indicator' => $successIndicator,
+                    ]),
+                ]);
+
+                return [
+                    'success'        => true,
+                    'collect_url'    => $checkoutUrl,
+                    'session_id'     => $sessionId,
+                    'transaction_id' => $transaction->id,
+                ];
+            }
+
+            Log::error('MPGS Bank Payment Initiation Failed', [
+                'transaction_id' => $transaction->id,
+                'response'       => $responseData,
+            ]);
+
+            return [
+                'success' => false,
+                'message' => $responseData['error']['explanation'] ?? 'Bank payment initiation failed',
+            ];
+        } catch (Exception $e) {
+            Log::error('MPGS Bank Payment API Exception', [
+                'transaction_id' => $transaction->id,
+                'error'          => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Bank payment service error: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    public function verifyBankPayment(Transaction $transaction, string $resultIndicator): array
+    {
+        $metadata         = $transaction->metadata ?? [];
+        $successIndicator = $metadata['mpgs_success_indicator'] ?? null;
+
+        if ($successIndicator && $resultIndicator === $successIndicator) {
+            $transaction->update(['status' => Transaction::STATUS_SUCCESS]);
+            return ['success' => true, 'status' => 'success'];
+        }
+
+        // If indicators don't match, query the gateway to confirm the real status
+        $merchantId  = config('services.mpgs.merchant_id');
+        $apiPassword = config('services.mpgs.api_password');
+        $gatewayUrl  = rtrim(config('services.mpgs.gateway_url'), '/');
+        $apiVersion  = config('services.mpgs.api_version', '61');
+
+        $url = "{$gatewayUrl}/api/rest/version/{$apiVersion}/merchant/{$merchantId}/order/{$transaction->external_id}";
+
+        try {
+            $response     = Http::withBasicAuth('merchant.' . $merchantId, $apiPassword)->get($url);
+            $responseData = $response->json();
+
+            if ($response->successful()) {
+                $gatewayStatus = $responseData['status'] ?? null;
+
+                if (in_array($gatewayStatus, ['CAPTURED', 'AUTHORIZED', 'APPROVED'])) {
+                    $transaction->update(['status' => Transaction::STATUS_SUCCESS]);
+                    return ['success' => true, 'status' => 'success'];
+                }
+
+                $transaction->update(['status' => Transaction::STATUS_FAILED]);
+                return [
+                    'success' => false,
+                    'status'  => 'failed',
+                    'message' => 'Payment not completed. Gateway status: ' . ($gatewayStatus ?? 'unknown'),
+                ];
+            }
+        } catch (Exception $e) {
+            Log::error('MPGS Bank Payment Verify Exception', [
+                'transaction_id' => $transaction->id,
+                'error'          => $e->getMessage(),
+            ]);
+        }
+
+        $transaction->update(['status' => Transaction::STATUS_FAILED]);
+        return ['success' => false, 'status' => 'failed', 'message' => 'Payment verification failed'];
+    }
+
     private function getBaseUrl(): string
     {
         $env = config('services.whish.env', 'sandbox');

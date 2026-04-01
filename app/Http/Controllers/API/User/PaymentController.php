@@ -297,6 +297,129 @@ class PaymentController extends Controller
         }
     }
 
+    public function bankReturn(Request $request)
+    {
+        $externalId      = $request->query('external_id');
+        $resultIndicator = $request->query('resultIndicator');
+
+        if (!$externalId) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Missing external_id parameter',
+            ], 400);
+        }
+
+        $transaction = Transaction::where('external_id', $externalId)
+            ->where('payment_type', Transaction::PAYMENT_TYPE_BANK)
+            ->first();
+
+        if (!$transaction) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Transaction not found',
+            ], 404);
+        }
+
+        if ($transaction->status === Transaction::STATUS_SUCCESS && $transaction->order_id) {
+            return response()->json([
+                'status'   => true,
+                'message'  => 'Order already processed',
+                'order_id' => $transaction->order_id,
+            ]);
+        }
+
+        if (!$resultIndicator) {
+            $transaction->update(['status' => Transaction::STATUS_FAILED]);
+            return response()->json([
+                'status'  => false,
+                'message' => 'Payment was cancelled or resultIndicator missing',
+            ], 400);
+        }
+
+        $paymentService = new PaymentService();
+        $verifyResult   = $paymentService->verifyBankPayment($transaction, $resultIndicator);
+
+        if (!$verifyResult['success']) {
+            return response()->json([
+                'status'  => false,
+                'message' => $verifyResult['message'] ?? 'Bank payment verification failed',
+            ], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            $metadata   = $transaction->metadata;
+            $customerId = $metadata['customer_id'] ?? null;
+            $orderItems = $metadata['items'] ?? [];
+
+            if (!$customerId || empty($orderItems)) {
+                throw new Exception('Invalid transaction metadata');
+            }
+
+            $settings             = Setting::first();
+            $commissionPercentage = $settings->commission_percentage ?? 0;
+            $totalAmount          = ($metadata['sub_total'] ?? 0) - ($metadata['total_discount'] ?? 0);
+            $commissionAmount     = ($totalAmount * $commissionPercentage) / 100;
+
+            $order = Order::create([
+                'customer_id'           => $customerId,
+                'status'                => 'pending',
+                'sub_total'             => $metadata['sub_total'] ?? 0,
+                'total_discount'        => $metadata['total_discount'] ?? 0,
+                'delivery'              => 0,
+                'commission_percentage' => $commissionPercentage,
+                'commission_amount'     => $commissionAmount,
+                'address'               => $metadata['address'] ?? '',
+                'name'                  => $metadata['name'] ?? '',
+                'phone'                 => $metadata['phone'] ?? '',
+            ]);
+
+            foreach ($orderItems as $itemData) {
+                $bundle = $itemData['bundle'];
+
+                OrderDetail::create([
+                    'order_id'    => $order->id,
+                    'bundle_id'   => $bundle['id'],
+                    'company_id'  => $bundle['company_id'],
+                    'branch_id'   => $bundle['branch_id'],
+                    'category_id' => $bundle['category_id'] ?? null,
+                    'quantity'    => $itemData['quantity'],
+                    'price'       => $itemData['price'],
+                    'discount'    => $itemData['discount'],
+                    'total'       => $itemData['total'],
+                    'bundles'     => $itemData['snapshot'],
+                    'status'      => 'pending',
+                ]);
+
+                $bundleModel = \App\Models\Bundle::find($bundle['id']);
+                if ($bundleModel) {
+                    $bundleModel->decrement('stock', $itemData['quantity']);
+                }
+            }
+
+            $transaction->update([
+                'order_id' => $order->id,
+                'status'   => Transaction::STATUS_SUCCESS,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'status'   => true,
+                'message'  => 'Bank payment successful. Order created.',
+                'order_id' => $order->id,
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            $transaction->update(['status' => Transaction::STATUS_FAILED]);
+
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function checkStatus($transactionId)
     {
         $transaction = Transaction::findOrFail($transactionId);

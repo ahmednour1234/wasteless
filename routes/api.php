@@ -73,6 +73,7 @@ Route::prefix('user')->group(function () {
     Route::post('callback/success', [PaymentController::class, 'successCallback']);
     Route::get('callback/success', [PaymentController::class, 'successRedirect']);
     Route::post('callback/failure', [PaymentController::class, 'failureCallback']);
+    Route::get('bank/return', [PaymentController::class, 'bankReturn']);
   });
 
   Route::middleware('auth:sanctum')->group(function () {

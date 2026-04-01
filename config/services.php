@@ -38,4 +38,11 @@ return [
         'env' => env('WHISH_ENV', 'sandbox'),
     ],
 
+    'mpgs' => [
+        'merchant_id'  => env('MPGS_MERCHANT_ID', 'TEST06300200'),
+        'api_password' => env('MPGS_API_PASSWORD'),
+        'gateway_url'  => env('MPGS_GATEWAY_URL', 'https://creditlibanais-netcommerce.gateway.mastercard.com/'),
+        'api_version'  => env('MPGS_API_VERSION', '61'),
+    ],
+
 ];

@@ -134,10 +134,15 @@ class OrderController extends Controller
             ]);
 
             $paymentService = new PaymentService();
-            $paymentResult = $paymentService->initiatePayment($transaction, [
-                'items' => $orderItems,
-                'customer' => $customer,
-            ]);
+
+            if ($paymentType === 'bank') {
+                $paymentResult = $paymentService->initiateBankPayment($transaction);
+            } else {
+                $paymentResult = $paymentService->initiatePayment($transaction, [
+                    'items' => $orderItems,
+                    'customer' => $customer,
+                ]);
+            }
 
             if (!$paymentResult['success']) {
                 $transaction->update(['status' => Transaction::STATUS_FAILED]);
