@@ -35,8 +35,16 @@ class LoginBasic extends Controller
     $user = User::where('email', $login)->orWhere('name', $login)->first();
 
     if ($user && Hash::check($password, $user->password)) {
-      $role = $user->role;  // Assuming the user has a relationship with the Role model
-      $permissions = json_decode($role->data, true);
+      $role = $user->role;
+      $roleData = $role?->data;
+
+      if (is_array($roleData)) {
+        $permissions = $roleData;
+      } elseif (is_string($roleData)) {
+        $permissions = json_decode($roleData, true) ?? [];
+      } else {
+        $permissions = [];
+      }
 
       // Store the permissions in the session or as part of the user data
       session(['permissions' => $permissions]);
