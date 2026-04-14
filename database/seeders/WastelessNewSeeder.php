@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Faker\Factory as FakerFactory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -16,11 +17,12 @@ class WastelessNewSeeder extends Seeder
     {
         $faker = FakerFactory::create();
         $now = Carbon::now();
+        $controllerPermissions = $this->extractPermissionsFromControllers();
 
         $this->truncateSeedTables();
 
-        $this->seedRoles($now);
-        $this->seedUsers($faker, $now);
+        $superRoleId = $this->seedRoles($now, $controllerPermissions);
+        $this->seedUsers($faker, $now, $superRoleId);
         $this->seedCustomers($faker, $now);
         $this->seedCompanies($faker, $now);
         $this->seedBranches($faker, $now);
@@ -69,10 +71,10 @@ class WastelessNewSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
-    private function seedRoles(Carbon $now): void
+    private function seedRoles(Carbon $now, array $controllerPermissions): int
     {
         if (!Schema::hasTable('roles')) {
-            return;
+            return 0;
         }
 
         DB::table('roles')->insert([
@@ -81,9 +83,20 @@ class WastelessNewSeeder extends Seeder
             ['name' => 'Manager', 'data' => json_encode(['dashboard' => true]), 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'User', 'data' => json_encode(['orders' => true]), 'created_at' => $now, 'updated_at' => $now],
         ]);
+
+        if (!empty($controllerPermissions)) {
+            DB::table('roles')->insert([
+                'name' => 'Super User',
+                'data' => json_encode($controllerPermissions),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        return (int) DB::table('roles')->where('name', 'Super User')->value('id');
     }
 
-    private function seedUsers($faker, Carbon $now): void
+    private function seedUsers($faker, Carbon $now, int $superRoleId): void
     {
         if (!Schema::hasTable('users') || !Schema::hasTable('roles')) {
             return;
@@ -112,12 +125,59 @@ class WastelessNewSeeder extends Seeder
             'email' => 'test@example.com',
             'phone' => '03000000',
             'password' => Hash::make('password'),
-            'role_id' => $roleIds[0],
+            'role_id' => $superRoleId > 0 ? $superRoleId : $roleIds[0],
             'created_at' => $now,
             'updated_at' => $now,
         ];
 
         DB::table('users')->insert($users);
+    }
+
+    private function extractPermissionsFromControllers(): array
+    {
+        $controllersPath = dirname(__DIR__, 2) . '/app/Http/Controllers';
+        if (!File::isDirectory($controllersPath)) {
+            return [];
+        }
+
+        $modules = [];
+        $actions = [];
+
+        foreach (File::allFiles($controllersPath) as $file) {
+            $content = File::get($file->getRealPath());
+
+            preg_match_all('/\$permissions\[[\'\"]([^\'\"]+)[\'\"]\]/', $content, $moduleMatches);
+            preg_match_all('/in_array\(\s*[\'\"]([a-z_]+)[\'\"]\s*,\s*\$permissions\[/', $content, $actionMatches);
+            preg_match_all('/authorizeAction\(\s*[\'\"]([a-z_]+)[\'\"]\s*\)/', $content, $authActionMatches);
+
+            if (!empty($moduleMatches[1])) {
+                $modules = array_merge($modules, $moduleMatches[1]);
+            }
+
+            if (!empty($actionMatches[1])) {
+                $actions = array_merge($actions, $actionMatches[1]);
+            }
+
+            if (!empty($authActionMatches[1])) {
+                $actions = array_merge($actions, $authActionMatches[1]);
+            }
+        }
+
+        $modules = array_values(array_unique(array_filter($modules)));
+        $actions = array_values(array_unique(array_filter($actions)));
+
+        if (empty($actions)) {
+            $actions = ['read', 'write', 'create', 'delete'];
+        }
+
+        $permissions = [];
+        foreach ($modules as $module) {
+            $permissions[$module] = [
+                'actions' => $actions,
+            ];
+        }
+
+        return $permissions;
     }
 
     private function seedCustomers($faker, Carbon $now): void
