@@ -150,7 +150,6 @@ class PaymentService
         $payload = [
             'apiOperation' => 'INITIATE_CHECKOUT',
             'interaction'  => [
-                'operation' => 'PURCHASE',
                 'returnUrl' => $returnUrl,
                 'merchant'  => [
                     'name' => config('app.name'),
