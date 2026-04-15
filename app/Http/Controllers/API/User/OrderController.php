@@ -51,7 +51,7 @@ class OrderController extends Controller
             'address'               => 'nullable|string',
             'name'                  => 'nullable|string',
             'phone'                 => 'nullable|string',
-            'payment_type'          => 'nullable|in:whish_money,omt_pay,bank',
+            'payment_type'          => 'nullable|in:whish_money,omt_pay,bank,bank_transfer',
         ]);
 
         if ($validator->fails()) {
@@ -135,7 +135,7 @@ class OrderController extends Controller
 
             $paymentService = new PaymentService();
 
-            if ($paymentType === 'bank') {
+            if ($paymentType === 'bank' || $paymentType === 'bank_transfer') {
                 $paymentResult = $paymentService->initiateBankPayment($transaction);
             } else {
                 $paymentResult = $paymentService->initiatePayment($transaction, [
