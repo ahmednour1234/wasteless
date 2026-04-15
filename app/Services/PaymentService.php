@@ -148,9 +148,18 @@ class PaymentService
         $url = "{$gatewayUrl}/api/rest/version/{$apiVersion}/merchant/{$merchantId}/session";
 
         $payload = [
-            'apiOperation' => 'INITIATE_CHECKOUT',
+            'apiOperation' => 'CREATE_CHECKOUT_SESSION',
+            'interaction'  => [
+                'operation'    => 'PURCHASE',
+                'returnUrl'    => $returnUrl,
+                'merchant'     => [
+                    'name' => config('app.name'),
+                ],
+            ],
             'order' => [
-                'id'       => $transaction->external_id,
+                'id'       => (string) $transaction->external_id,
+                'amount'   => number_format((float) $transaction->amount, 2, '.', ''),
+                'currency' => $transaction->currency,
             ],
         ];
 
