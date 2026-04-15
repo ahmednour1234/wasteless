@@ -157,9 +157,7 @@ class PaymentService
                 ],
             ],
             'order' => [
-                'id'          => $transaction->external_id,
-                'amount'      => number_format((float) $transaction->amount, 2, '.', ''),
-                'currency'    => $transaction->currency,
+                'id'       => $transaction->external_id,
             ],
         ];
 
