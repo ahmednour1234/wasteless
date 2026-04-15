@@ -18,11 +18,11 @@ class BundleResource extends JsonResource
     $now = Carbon::now();
 $nowInCairo = Carbon::now('Africa/Cairo');
 
-    $opening=Carbon::parse($this->opening_time);
-    $ended = Carbon::parse($this->ended_time);
+    $opening = $this->opening_time ? Carbon::parse($this->opening_time) : null;
+    $ended = $this->ended_time ? Carbon::parse($this->ended_time) : null;
 
     // إذا لم ينتهِ بعد، احسب الفرق بالدقائق وإلا 0
-    $minutesLeft = $ended->isFuture()
+    $minutesLeft = ($ended && $ended->isFuture())
         ? $now->diffInMinutes($ended)
         : 0;
         return [
@@ -49,7 +49,7 @@ $nowInCairo = Carbon::now('Africa/Cairo');
             'company' => [
                 'id'    => $this->company_id,
                 'name'  => $this->company->name ?? null,
-                'image' => $this->company->img ? asset($this->company->img) : null,
+                'image' => $this->company?->img ? asset($this->company->img) : null,
             ],
 
             /* --- Branch --- */

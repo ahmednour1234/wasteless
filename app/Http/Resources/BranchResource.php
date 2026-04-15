@@ -18,8 +18,8 @@ class BranchResource extends JsonResource
         'company_id' => $this->company_id,
         'active'     => (bool)   $this->active,   // ← here
                 'main'     => (bool)   $this->main,   // ← here
-        'created_at' => $this->created_at->toDateTimeString(),
-        'updated_at' => $this->updated_at->toDateTimeString(),
+        'created_at' => $this->created_at?->toDateTimeString(),
+        'updated_at' => $this->updated_at?->toDateTimeString(),
     ];
 }
 

@@ -18,9 +18,9 @@ class CompanyOrderDetailResource extends JsonResource
             'total'       => $this->total,
             'status'      => $this->status,
             'customer'    => [
-                'name'  => $this->order->name,
-                'phone' => $this->order->phone,
-                'address' => $this->order->address,
+                'name'  => $this->order->name ?? null,
+                'phone' => $this->order->phone ?? null,
+                'address' => $this->order->address ?? null,
             ],
         ];
     }

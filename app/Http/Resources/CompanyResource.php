@@ -17,7 +17,7 @@ class CompanyResource extends JsonResource
             'category'   => $this->category->name ?? null,
             'approve'    => (bool) $this->approve,
             'logo'       => $this->logo ? asset($this->logo) : null,
-            'created_at' => $this->created_at->toDateTimeString(),
+            'created_at' => $this->created_at?->toDateTimeString(),
         ];
     }
 }

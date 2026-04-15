@@ -14,7 +14,7 @@ class CategoryResource extends JsonResource
             'name'      => $this->name,
             'image_url' => $this->image ? asset($this->image) : null,
             'is_active' => (bool) $this->is_active,
-            'created_at'=> $this->created_at->toIso8601String(),
+            'created_at'=> $this->created_at?->toIso8601String(),
         ];
     }
 }
