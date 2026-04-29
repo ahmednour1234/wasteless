@@ -14,10 +14,15 @@ class Customer extends Authenticatable
 
     protected $fillable = [
         'name', 'email', 'phone', 'img', 'password',
+        'loyalty_points', 'loyalty_bonus_expires_at',
     ];
 
     protected $hidden = [
         'password', 'remember_token',
+    ];
+
+    protected $casts = [
+        'loyalty_bonus_expires_at' => 'datetime',
     ];
 
     /* تشفير كلمة المرور تلقائياً */
@@ -25,8 +30,22 @@ class Customer extends Authenticatable
     {
         $this->attributes['password'] = bcrypt($value);
     }
-     public function reviews()
+
+    public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyTransaction::class);
+    }
+
+    public function getLoyaltyTierAttribute(): string
+    {
+        $points = $this->loyalty_points ?? 0;
+        if ($points >= 65001) return 'platinum';
+        if ($points >= 20001) return 'gold';
+        return 'silver';
     }
 }

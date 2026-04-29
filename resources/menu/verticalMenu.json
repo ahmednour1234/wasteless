@@ -103,6 +103,18 @@
       ]
     },
     {
+      "name": "Loyalty Program",
+      "icon": "menu-icon tf-icons ti ti-star",
+      "slug": "loyalty",
+      "submenu": [
+        {
+          "url": "/loyalty",
+          "name": "Loyalty Overview",
+          "slug": "loyalty.index"
+        }
+      ]
+    },
+    {
       "name": "Settings",
       "icon": "menu-icon tf-icons ti ti-layout-sidebar",
       "slug": "settings",

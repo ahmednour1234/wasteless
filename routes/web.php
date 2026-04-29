@@ -14,6 +14,7 @@ use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\dashboard\CompanyController;
 use App\Http\Controllers\dashboard\CustomerController;
 use App\Http\Controllers\dashboard\TransactionController;
+use App\Http\Controllers\dashboard\LoyaltyController;
 
 Route::middleware('auth')
   ->get('/', [Analytics::class, 'index'])
@@ -80,6 +81,14 @@ Route::put('companies/{company}/update-password', [CompanyController::class, 'up
 
       Route::get('/{customer}', [CustomerController::class, 'show'])->name('show');
     });
+
+  Route::prefix('loyalty')
+    ->name('loyalty.')
+    ->group(function () {
+      Route::get('/', [LoyaltyController::class, 'index'])->name('index');
+      Route::get('/{customer}', [LoyaltyController::class, 'show'])->name('show');
+    });
+
   Route::prefix('reviews')
     ->name('reviews.')
     ->group(function () {

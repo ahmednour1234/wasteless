@@ -8,7 +8,9 @@ class Order extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'customer_id', 'status', 'sub_total', 'total_discount', 'delivery', 'address', 'phone', 'name'
+        'customer_id', 'status', 'sub_total', 'total_discount', 'delivery', 'address', 'phone', 'name',
+        'loyalty_discount', 'points_redeemed', 'has_bonus_discount',
+        'commission_percentage', 'commission_amount',
     ];
 
     public function customer()
@@ -24,5 +26,10 @@ class Order extends Model
     public function transaction()
     {
         return $this->hasOne(Transaction::class);
+    }
+
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyTransaction::class);
     }
 }

@@ -14,6 +14,7 @@ use App\Http\Controllers\API\User\CategoryController;
 use App\Http\Controllers\API\User\FavouriteController;
 use App\Http\Controllers\API\User\OrderController;
 use App\Http\Controllers\API\User\PaymentController;
+use App\Http\Controllers\API\User\LoyaltyController;
 
 Route::prefix('companies')->group(function () {
   Route::post('signup',     [CompanyAuthController::class, 'signup']);
@@ -88,6 +89,11 @@ Route::prefix('user')->group(function () {
                 Route::get('/', [OrderController::class, 'index']);
     Route::get('/{id}', [OrderController::class, 'show']);
     Route::post('/', [OrderController::class, 'store']);
+            });
+
+            Route::prefix('loyalty')->group(function () {
+                Route::get('/', [LoyaltyController::class, 'index']);
+                Route::get('/transactions', [LoyaltyController::class, 'transactions']);
             });
 
     Route::prefix('payments')->group(function () {

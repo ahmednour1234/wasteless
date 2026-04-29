@@ -14,6 +14,7 @@ use App\Models\Customer;
 use App\Models\Transaction;
 use App\Http\Resources\OrderResource;
 use App\Services\PaymentService;
+use App\Services\LoyaltyService;
 use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -102,7 +103,14 @@ class OrderController extends Controller
 
             $orderName  = $request->input('name')  ?: $customer->name;
             $orderPhone = $request->input('phone') ?: $customer->phone;
-            $totalAmount = $totalSub - $totalDiscount;
+
+            // ── Loyalty discount ───────────────────────────────────────────
+            $loyaltyService         = new LoyaltyService();
+            $loyaltyInfo            = $loyaltyService->checkAndApplyRedemption($customer);
+            $netAfterBundleDiscount = $totalSub - $totalDiscount;
+            $loyaltyDiscount        = round($netAfterBundleDiscount * $loyaltyInfo['total_discount_pct'] / 100, 2);
+            $totalAmount            = max(0, $netAfterBundleDiscount - $loyaltyDiscount);
+            // ───────────────────────────────────────────────────────────────
 
             $appUrl = config('app.url');
             $baseUrl = (strpos($appUrl, 'http://') === 0 ? str_replace('http://', 'https://', $appUrl) : $appUrl) . '/api';
@@ -123,13 +131,16 @@ class OrderController extends Controller
                 'success_redirect_url' => $request->input('success_redirect_url', $baseUrl . '/user/payments/callback/success'),
                 'failure_redirect_url' => $request->input('failure_redirect_url', $baseUrl . '/user/payments/callback/failure'),
                 'metadata' => [
-                    'customer_id' => $customer->id,
-                    'items' => $orderItems,
-                    'address' => $request->input('address', ''),
-                    'name' => $orderName,
-                    'phone' => $orderPhone,
-                    'sub_total' => $totalSub,
-                    'total_discount' => $totalDiscount,
+                    'customer_id'        => $customer->id,
+                    'items'              => $orderItems,
+                    'address'            => $request->input('address', ''),
+                    'name'               => $orderName,
+                    'phone'              => $orderPhone,
+                    'sub_total'          => $totalSub,
+                    'total_discount'     => $totalDiscount,
+                    'loyalty_discount'   => $loyaltyDiscount,
+                    'points_redeemed'    => $loyaltyInfo['points_to_deduct'],
+                    'has_bonus_discount' => $loyaltyInfo['bonus_used'],
                 ],
             ]);
 

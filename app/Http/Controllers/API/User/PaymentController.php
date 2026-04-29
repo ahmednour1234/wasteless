@@ -9,6 +9,8 @@ use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Setting;
 use App\Services\PaymentService;
+use App\Services\LoyaltyService;
+use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -74,17 +76,24 @@ class PaymentController extends Controller
             $commissionPercentage = $settings->commission_percentage ?? 0;
             $commissionAmount = ($totalAmount * $commissionPercentage) / 100;
 
+            $loyaltyDiscount  = (float) ($metadata['loyalty_discount']   ?? 0);
+            $pointsRedeemed   = (int)   ($metadata['points_redeemed']    ?? 0);
+            $hasBonusDiscount = (bool)  ($metadata['has_bonus_discount'] ?? false);
+
             $order = Order::create([
-                'customer_id'         => $customerId,
-                'status'              => 'pending',
-                'sub_total'           => $metadata['sub_total'] ?? 0,
-                'total_discount'      => $metadata['total_discount'] ?? 0,
-                'delivery'            => 0,
+                'customer_id'           => $customerId,
+                'status'                => 'pending',
+                'sub_total'             => $metadata['sub_total'] ?? 0,
+                'total_discount'        => $metadata['total_discount'] ?? 0,
+                'loyalty_discount'      => $loyaltyDiscount,
+                'points_redeemed'       => $pointsRedeemed,
+                'has_bonus_discount'    => $hasBonusDiscount,
+                'delivery'              => 0,
                 'commission_percentage' => $commissionPercentage,
-                'commission_amount'   => $commissionAmount,
-                'address'             => $metadata['address'] ?? '',
-                'name'                => $metadata['name'] ?? '',
-                'phone'               => $metadata['phone'] ?? '',
+                'commission_amount'     => $commissionAmount,
+                'address'               => $metadata['address'] ?? '',
+                'name'                  => $metadata['name'] ?? '',
+                'phone'                 => $metadata['phone'] ?? '',
             ]);
 
             foreach ($orderItems as $itemData) {
@@ -111,11 +120,20 @@ class PaymentController extends Controller
             }
 
             $transaction->update([
-                'order_id'             => $order->id,
-                'status'               => Transaction::STATUS_SUCCESS,
+                'order_id'              => $order->id,
+                'status'                => Transaction::STATUS_SUCCESS,
                 'commission_percentage' => $commissionPercentage,
-                'commission_amount'    => $commissionAmount,
+                'commission_amount'     => $commissionAmount,
             ]);
+
+            // ── Loyalty: redeem points & award earned points ───────────────
+            $customer = Customer::find($customerId);
+            if ($customer) {
+                $loyaltyService = new LoyaltyService();
+                $loyaltyService->applyRedemption($customer, $order);
+                $loyaltyService->awardPoints($customer, $order);
+            }
+            // ─────────────────────────────────────────────────────────────
 
             DB::commit();
 

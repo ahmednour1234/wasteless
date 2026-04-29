@@ -5,6 +5,7 @@ namespace App\Http\Controllers\dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\LoyaltyTransaction;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -43,6 +44,10 @@ class CustomerController extends Controller
                         ->latest()
                         ->paginate(10);
 
-    return view('content.customers.show', compact('customer', 'reviews'));
+        $loyaltyTransactions = LoyaltyTransaction::where('customer_id', $customer->id)
+            ->latest()
+            ->paginate(15, ['*'], 'loyalty_page');
+
+    return view('content.customers.show', compact('customer', 'reviews', 'loyaltyTransactions'));
     }
 }
