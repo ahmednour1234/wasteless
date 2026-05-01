@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\Company\CompanyAuthController;
+use App\Http\Controllers\API\Admin\SeederController;
 use App\Http\Controllers\API\User\CompanyController;
 use App\Http\Controllers\API\Company\BranchController;
 use App\Http\Controllers\API\Company\BundleController;
@@ -102,6 +103,7 @@ Route::prefix('user')->group(function () {
 
     Route::get('profile', [AuthUserController::class, 'me']);      // جلب البيانات
     Route::post('profile', [AuthUserController::class, 'update']);  // تحديث البيانات
+    Route::get('account', [AuthUserController::class, 'account']);  // account overview screen
     Route::post('logout',  [AuthUserController::class, 'logout']);
       Route::prefix('reviews')->group(function () {
         Route::get('/{review}', [ReviewController::class, 'show']);
@@ -110,3 +112,7 @@ Route::prefix('user')->group(function () {
   });
   Route::get('categories', [CategoryController::class, 'index']);
 });
+
+// ── Admin / Dev utilities ───────────────────────────────────────────────────
+// Only works when APP_ENV=local|staging AND X-Seed-Secret header matches SEED_API_SECRET
+Route::post('admin/seed', [SeederController::class, 'run']);

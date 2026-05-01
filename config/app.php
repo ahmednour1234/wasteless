@@ -59,6 +59,9 @@ return [
 
   'asset_url' => env('ASSET_URL'),
 
+  // Secret key required to call POST /api/admin/seed
+  'seed_api_secret' => env('SEED_API_SECRET'),
+
   /*
     |--------------------------------------------------------------------------
     | Application Timezone
