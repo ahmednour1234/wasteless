@@ -26,6 +26,7 @@ class OrderResource extends JsonResource
             'points_earned'   => $pointsEarned,
             'has_bonus_discount' => (bool) $this->has_bonus_discount,
             'delivery'        => $this->delivery,
+            'payment_method'  => $this->payment_method,
             'address'         => $this->address,
             'phone'           => $this->phone,
             'name'            => $this->name,

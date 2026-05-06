@@ -11,6 +11,7 @@ class Order extends Model
         'customer_id', 'status', 'sub_total', 'total_discount', 'delivery', 'address', 'phone', 'name',
         'loyalty_discount', 'points_redeemed', 'has_bonus_discount',
         'commission_percentage', 'commission_amount',
+        'payment_method',
     ];
 
     public function customer()
