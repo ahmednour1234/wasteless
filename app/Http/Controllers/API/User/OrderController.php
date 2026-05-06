@@ -25,7 +25,7 @@ class OrderController extends Controller
     {
         $customer = Customer::where('id', Auth::id())->firstOrFail();
 
-        $orders = Order::with(['details.bundle'])
+        $orders = Order::with(['details.bundle', 'transaction'])
             ->where('customer_id', $customer->id)
             ->latest()
             ->get();
@@ -37,7 +37,7 @@ class OrderController extends Controller
     {
         $customer = Customer::where('id', Auth::id())->firstOrFail();
 
-        $order = Order::with(['details.bundle'])
+        $order = Order::with(['details.bundle', 'transaction'])
             ->where('customer_id', $customer->id)
             ->findOrFail($id);
 
