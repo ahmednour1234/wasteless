@@ -43,6 +43,121 @@ class OrderController extends Controller
 
         return new OrderResource($order);
     }
+    /**
+     * Cancel a pending reservation owned by the authenticated customer.
+     * Only orders whose status is "pending" can be cancelled.
+     */
+    public function cancel($id)
+    {
+        $customer = Customer::where('id', Auth::id())->firstOrFail();
+
+        $order = Order::with('details.bundle')
+            ->where('customer_id', $customer->id)
+            ->find($id);
+
+        if (!$order) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Order not found',
+            ], 404);
+        }
+
+        if ($order->status !== 'pending') {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Only pending reservations can be cancelled',
+            ], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($order) {
+                // Restore stock for each reserved bundle.
+                foreach ($order->details as $detail) {
+                    if ($detail->bundle) {
+                        $detail->bundle->increment('stock', $detail->quantity);
+                    }
+                    $detail->update(['status' => 'cancelled']);
+                }
+
+                $order->update(['status' => 'cancelled']);
+
+                if ($order->transaction) {
+                    $order->transaction->update(['status' => Transaction::STATUS_CANCELLED]);
+                }
+            });
+        } catch (Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Reservation cancelled successfully',
+            'data'    => [
+                'id'     => $order->id,
+                'status' => 'cancelled',
+            ],
+        ]);
+    }
+
+    /**
+     * Lightweight active order reminder for the Home screen.
+     * Returns the nearest upcoming collection for a pending order, or null.
+     */
+    public function activeReminder()
+    {
+        $customer = Customer::where('id', Auth::id())->firstOrFail();
+
+        $order = Order::with(['details.bundle'])
+            ->where('customer_id', $customer->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->get()
+            ->first(function ($order) {
+                $bundle = optional($order->details->first())->bundle;
+                return $bundle && $bundle->opening_time
+                    && Carbon::parse($bundle->opening_time)->isFuture();
+            });
+
+        if (!$order) {
+            return response()->json(['status' => true, 'data' => null]);
+        }
+
+        $detail = $order->details->first();
+        $bundle = $detail->bundle;
+
+        $now             = Carbon::now();
+        $collectionStart = Carbon::parse($bundle->opening_time);
+        $collectionEnd   = $bundle->ended_time ? Carbon::parse($bundle->ended_time) : null;
+        $secondsUntil    = max(0, $now->diffInSeconds($collectionStart, false));
+
+        // "Collection starts at 18:00 tomorrow" vs "Collection starts in HH:MM:SS"
+        if ($collectionStart->isToday()) {
+            $displayText = 'Collection starts at ' . $collectionStart->format('H:i') . ' today';
+        } elseif ($collectionStart->isTomorrow()) {
+            $displayText = 'Collection starts at ' . $collectionStart->format('H:i') . ' tomorrow';
+        } else {
+            $displayText = 'Collection starts on ' . $collectionStart->format('d M') . ' at ' . $collectionStart->format('H:i');
+        }
+
+        return response()->json([
+            'status' => true,
+            'data'   => [
+                'order_id'                 => $order->id,
+                'bundle_id'                => $bundle->id,
+                'bundle_name'              => $bundle->name,
+                'bundle_image'             => $bundle->image ? asset($bundle->image) : null,
+                'collection_start'         => $collectionStart->toIso8601String(),
+                'collection_end'           => $collectionEnd?->toIso8601String(),
+                'status'                   => $order->status,
+                'display_text'             => $displayText,
+                'seconds_until_collection' => $secondsUntil,
+            ],
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

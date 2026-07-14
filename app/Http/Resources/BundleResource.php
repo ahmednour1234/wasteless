@@ -61,6 +61,21 @@ $nowInCairo = Carbon::now('Africa/Cairo');
                 'lng'  => $this->branch->lng ?? null,
             ],
 
+            /* --- All outlets/branches for this bundle's company --- */
+            'branches' => $this->when(
+                $this->relationLoaded('company') && $this->company,
+                fn () => $this->company->branches
+                    ->where('active', true)
+                    ->map(fn ($branch) => [
+                        'id'      => $branch->id,
+                        'name'    => $branch->name,
+                        'address' => $branch->address,
+                        'lat'     => $branch->lat,
+                        'lng'     => $branch->lng,
+                    ])
+                    ->values()
+            ),
+
             /* --- Category --- */
             'category' => [
                 'id'   => $this->category_id,

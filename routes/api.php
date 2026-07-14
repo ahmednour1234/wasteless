@@ -14,6 +14,7 @@ use App\Http\Controllers\API\User\BundleController as PublicBundleController;
 use App\Http\Controllers\API\User\CategoryController;
 use App\Http\Controllers\API\User\FavouriteController;
 use App\Http\Controllers\API\User\OrderController;
+use App\Http\Controllers\API\User\StoreRecommendationController;
 use App\Http\Controllers\API\User\PaymentController;
 use App\Http\Controllers\API\User\LoyaltyController;
 
@@ -88,9 +89,13 @@ Route::prefix('user')->group(function () {
                         Route::prefix('orders')->group(function () {
 
                 Route::get('/', [OrderController::class, 'index']);
+    Route::get('/active-reminder', [OrderController::class, 'activeReminder']);
     Route::get('/{id}', [OrderController::class, 'show']);
     Route::post('/', [OrderController::class, 'store']);
+    Route::post('/{id}/cancel', [OrderController::class, 'cancel']);
             });
+
+            Route::post('store-recommendations', [StoreRecommendationController::class, 'store']);
 
             Route::prefix('loyalty')->group(function () {
                 Route::get('/', [LoyaltyController::class, 'index']);
