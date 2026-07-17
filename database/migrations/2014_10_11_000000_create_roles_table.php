@@ -8,12 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->json('data')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('roles')) {
+            Schema::create('roles', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->json('data')->nullable();
+                $table->timestamps();
+            });
+        }
 
         \DB::table('roles')->insert([
             'name' => 'Default Role',

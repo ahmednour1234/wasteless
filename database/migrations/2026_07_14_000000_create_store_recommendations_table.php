@@ -8,14 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('store_recommendations', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id')->nullable()->constrained('customers')->nullOnDelete();
-            $table->string('store_name');
-            $table->string('location_hint')->nullable();
-            $table->text('notes')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('store_recommendations')) {
+            Schema::create('store_recommendations', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('customer_id')->nullable()->constrained('customers')->nullOnDelete();
+                $table->string('store_name');
+                $table->string('location_hint')->nullable();
+                $table->text('notes')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

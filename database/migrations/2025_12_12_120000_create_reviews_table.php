@@ -8,16 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('reviews', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('bundle_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
-            $table->json('bundle_data')->nullable();
-            $table->unsignedTinyInteger('rating');
-            $table->text('comment')->nullable();
-            $table->boolean('active')->default(true);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('reviews')) {
+            Schema::create('reviews', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('bundle_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+                $table->json('bundle_data')->nullable();
+                $table->unsignedTinyInteger('rating');
+                $table->text('comment')->nullable();
+                $table->boolean('active')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

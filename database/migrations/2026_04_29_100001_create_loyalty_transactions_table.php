@@ -8,16 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('loyalty_transactions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
-            $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
-            $table->enum('type', ['earned', 'redeemed', 'bonus']);
-            $table->integer('points');
-            $table->integer('balance_after');
-            $table->string('description')->nullable();
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('loyalty_transactions')) {
+            Schema::create('loyalty_transactions', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+                $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
+                $table->enum('type', ['earned', 'redeemed', 'bonus']);
+                $table->integer('points');
+                $table->integer('balance_after');
+                $table->string('description')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

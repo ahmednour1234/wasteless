@@ -9,8 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('customers', function (Blueprint $table) {
-            $table->unsignedInteger('loyalty_points')->default(0)->after('img');
-            $table->timestamp('loyalty_bonus_expires_at')->nullable()->after('loyalty_points');
+            if (! Schema::hasColumn('customers', 'loyalty_points')) {
+                $table->unsignedInteger('loyalty_points')->default(0)->after('img');
+            }
+            if (! Schema::hasColumn('customers', 'loyalty_bonus_expires_at')) {
+                $table->timestamp('loyalty_bonus_expires_at')->nullable()->after('loyalty_points');
+            }
         });
     }
 

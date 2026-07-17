@@ -8,14 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('favourites', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('customers')->cascadeOnDelete();
-            $table->foreignId('bundle_id')->constrained()->cascadeOnDelete();
-            $table->timestamps();
+        if (! Schema::hasTable('favourites')) {
+            Schema::create('favourites', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained('customers')->cascadeOnDelete();
+                $table->foreignId('bundle_id')->constrained()->cascadeOnDelete();
+                $table->timestamps();
 
-            $table->unique(['user_id', 'bundle_id']);
-        });
+                $table->unique(['user_id', 'bundle_id']);
+            });
+        }
     }
 
     public function down(): void
