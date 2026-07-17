@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('settings', function (Blueprint $table) {
-            $table->decimal('commission_percentage', 5, 2)->default(0)->after('phone');
+            if (! Schema::hasColumn('settings', 'commission_percentage')) {
+                $table->decimal('commission_percentage', 5, 2)->default(0)->after('phone');
+            }
         });
     }
 

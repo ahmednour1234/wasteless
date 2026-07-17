@@ -9,8 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->decimal('commission_percentage', 5, 2)->nullable()->after('delivery');
-            $table->decimal('commission_amount', 15, 2)->default(0)->after('commission_percentage');
+            if (! Schema::hasColumn('orders', 'commission_percentage')) {
+                $table->decimal('commission_percentage', 5, 2)->nullable()->after('delivery');
+            }
+            if (! Schema::hasColumn('orders', 'commission_amount')) {
+                $table->decimal('commission_amount', 15, 2)->default(0)->after('commission_percentage');
+            }
         });
     }
 
