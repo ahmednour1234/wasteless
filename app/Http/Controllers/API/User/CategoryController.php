@@ -1,5 +1,6 @@
-<?
-namespace App\Http\Controllers\Api\User;
+<?php
+
+namespace App\Http\Controllers\API\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
