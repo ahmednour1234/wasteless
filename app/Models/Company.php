@@ -28,15 +28,14 @@ class Company extends Authenticatable
         'password',
         'remember_token',
     ];
-      protected $casts = [
-    'password' => 'hashed',
-  ];
+    protected $casts = [
+        'password' => 'hashed',
+        'active'   => 'boolean',
+    ];
 
-    /* شفّر كلمة المرور تلقائياً */
-    protected function setPasswordAttribute($value): void
-    {
-        $this->attributes['password'] = bcrypt($value);
-    }
+    /* التشفير يتم تلقائياً عبر الـ cast أعلاه ('password' => 'hashed').
+       لا تضف mutator لكلمة المرور هنا — سيؤدي ذلك إلى تشفيرها مرتين
+       وبالتالي فشل Hash::check دائماً عند تسجيل الدخول. */
         public function branches()
     {
         return $this->hasMany(Branch::class);

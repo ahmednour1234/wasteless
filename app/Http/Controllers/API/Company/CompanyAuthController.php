@@ -106,6 +106,7 @@ public function signup(Request $request)
 
     // تفعيل الحساب وتحديث الكود لتجنّب استخدامه مرة أخرى
     $company->update([
+        'active'            => true, // تفعيل الحساب ليتمكن من تسجيل الدخول
         'email_verify_code' => null, // إلغاء الكود بعد التحقق
     ]);
 
