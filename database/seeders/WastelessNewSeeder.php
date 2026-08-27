@@ -39,6 +39,27 @@ class WastelessNewSeeder extends Seeder
         $this->seedSettings($now);
     }
 
+    /** Cached result of the bundles.ended_time column-type probe. */
+    private ?bool $endedTimeIsDateTime = null;
+
+    /**
+     * bundles.ended_time is declared time() in the migration but is DATETIME on the
+     * live database, and the controllers compare it against full datetimes. Write
+     * whichever format the actual column accepts so both schemas work.
+     */
+    private function formatEndedTime(Carbon $value): string
+    {
+        if ($this->endedTimeIsDateTime === null) {
+            $type = strtolower((string) Schema::getColumnType('bundles', 'ended_time'));
+            $this->endedTimeIsDateTime = str_contains($type, 'datetime')
+                || str_contains($type, 'timestamp');
+        }
+
+        return $this->endedTimeIsDateTime
+            ? $value->format('Y-m-d H:i:s')
+            : $value->format('H:i:s');
+    }
+
     private function truncateSeedTables(): void
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
@@ -322,8 +343,12 @@ class WastelessNewSeeder extends Seeder
                     'price_after_discount' => $priceAfterDiscount,
                     'stock' => random_int(1, 100),
                     'active' => true,
-                    'opening_time' => $now->copy()->addHours(3),
-                    'ended_time' => $now->copy()->addHours(9)->format('H:i:s'),
+                    // Must already be open, otherwise GET user/bundles (opening_time <= now)
+                    // returns nothing and the Home "Popular" section hides itself.
+                    'opening_time' => $now->copy()->subHours(2),
+                    // ended_time is DATETIME on the live DB (the migration still says time());
+                    // write the format the actual column takes.
+                    'ended_time' => $this->formatEndedTime($now->copy()->addHours(9)),
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];
