@@ -13,5 +13,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(WastelessNewSeeder::class);
+
+        // Guarantees every Home screen section has data (see HomeScreenSeeder).
+        $this->call(HomeScreenSeeder::class);
     }
 }
