@@ -132,21 +132,7 @@ class OrderController extends Controller
         $now             = Carbon::now();
         $collectionStart = Carbon::parse($bundle->opening_time);
 
-        // ended_time عمود TIME (وقت بدون تاريخ)، فنركّبه على تاريخ بداية الاستلام.
-        $collectionEnd = null;
-        if ($bundle->ended_time) {
-            $endTime = Carbon::parse($bundle->ended_time);
-            $collectionEnd = $collectionStart->copy()->setTime(
-                (int) $endTime->format('H'),
-                (int) $endTime->format('i'),
-                (int) $endTime->format('s')
-            );
-
-            // لو وقت الإغلاق أبكر من وقت الفتح فالفترة بتمتد لليوم التالي.
-            if ($collectionEnd->lessThan($collectionStart)) {
-                $collectionEnd->addDay();
-            }
-        }
+        $collectionEnd = $bundle->ended_time ? Carbon::parse($bundle->ended_time) : null;
 
         // لازم يكون عدد صحيح موجب — التطبيق بيرفض string أو float.
         $secondsUntil = (int) max(0, $now->diffInSeconds($collectionStart, false));

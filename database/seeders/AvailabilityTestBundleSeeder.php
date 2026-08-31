@@ -29,7 +29,10 @@ class AvailabilityTestBundleSeeder extends Seeder
             'active'      => true,
         ];
 
-        $open  = $now->copy()->addHours(2);
+        // فترة الاستلام لازم تكون مفتوحة دلوقتي، وإلا فلتر index
+        // (opening_time <= now) هيستبعد الحالات دي من الهوم.
+        // والإغلاق بعد 6 ساعات يخلي minutes_left > 60 فيظهر شارة المخزون.
+        $open  = $now->copy()->subHour();
         $close = $now->copy()->addHours(6);
 
         $rows = [
@@ -60,9 +63,6 @@ class AvailabilityTestBundleSeeder extends Seeder
         ];
 
         foreach ($rows as $row) {
-            // ended_time عمود من نوع TIME، لذلك نخزّن الوقت فقط.
-            $row['ended_time'] = $row['ended_time']->format('H:i:s');
-
             Bundle::updateOrCreate(
                 ['name' => $row['name']],
                 array_merge($shared, $row),
