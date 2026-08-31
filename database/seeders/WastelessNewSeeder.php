@@ -62,7 +62,14 @@ class WastelessNewSeeder extends Seeder
 
     private function truncateSeedTables(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        $driver = DB::getDriverName();
+
+        // SQLite لا يفهم SET FOREIGN_KEY_CHECKS.
+        if ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        }
 
         $tables = [
             'order_details',
@@ -85,11 +92,21 @@ class WastelessNewSeeder extends Seeder
 
         foreach ($tables as $table) {
             if (Schema::hasTable($table)) {
-                DB::table($table)->truncate();
+                // truncate في SQLite لا يعيد ضبط المفاتيح، فنحذف ونصفّر العدّاد.
+                if ($driver === 'sqlite') {
+                    DB::table($table)->delete();
+                    DB::table('sqlite_sequence')->where('name', $table)->delete();
+                } else {
+                    DB::table($table)->truncate();
+                }
             }
         }
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        if ($driver === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = ON');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
     }
 
     private function seedRoles(Carbon $now, array $controllerPermissions): int
