@@ -25,11 +25,30 @@ $nowInCairo = Carbon::now('Africa/Cairo');
     $minutesLeft = ($ended && $ended->isFuture())
         ? $now->diffInMinutes($ended)
         : 0;
+
+    // نص الوقت المتبقي حسب قواعد التطبيق:
+    // - نفد المخزون  => "Sold out at HH:mm today" (يعتمد عليها التطبيق لتلوين الكارت)
+    // - انتهت الفترة => "انتهت"
+    // - أقل من ساعة  => "{n} min left"
+    // - غير ذلك      => نص فارغ ليعرض التطبيق شارة المخزون
+    if ((int) $this->stock <= 0) {
+        $soldOutAt = $ended ?: $now;
+        $timeLeftText = 'Sold out at ' . $soldOutAt->format('H:i') . ' today';
+        $minutesLeft = 0;
+    } elseif ($minutesLeft === 0) {
+        $timeLeftText = 'انتهت';
+    } elseif ($minutesLeft <= 60) {
+        $timeLeftText = $minutesLeft . ' min left';
+    } else {
+        $timeLeftText = '';
+    }
         return [
             'now'=>$now,
             'id'                   => $this->id,
             'name'                 => $this->name,
-            'image'                => $this->image ? asset($this->image) : null,
+            'image'                => $this->image
+                ? (\Illuminate\Support\Str::startsWith($this->image, ['http://', 'https://']) ? $this->image : asset($this->image))
+                : null,
             'description'          => $this->description,
             'price'                => $this->price,
             'price_after_discount' => $this->price_after_discount,
@@ -37,10 +56,7 @@ $nowInCairo = Carbon::now('Africa/Cairo');
             'opening_time'         => $this->opening_time,
             'ended_time'           => $ended,
                    'minutes_left'   => $minutesLeft,
-        // مثال: "5 دقائق" أو "انتهت"
-        'time_left_text' => $minutesLeft > 0
-            ? $minutesLeft . ' دقيقة'
-            : 'انتهت',
+        'time_left_text' => $timeLeftText,
             'active'               => (bool) $this->active,
             'created_at'           => $this->created_at,
             'updated_at'           => $this->updated_at,

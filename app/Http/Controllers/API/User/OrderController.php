@@ -110,16 +110,17 @@ class OrderController extends Controller
     {
         $customer = Customer::where('id', Auth::id())->firstOrFail();
 
+        // أقرب استلام قادم، مش آخر أوردر اتعمل.
         $order = Order::with(['details.bundle'])
             ->where('customer_id', $customer->id)
             ->where('status', 'pending')
-            ->latest()
             ->get()
-            ->first(function ($order) {
+            ->filter(function ($order) {
                 $bundle = optional($order->details->first())->bundle;
-                return $bundle && $bundle->opening_time
-                    && Carbon::parse($bundle->opening_time)->isFuture();
-            });
+                return $bundle && $bundle->opening_time;
+            })
+            ->sortBy(fn ($order) => Carbon::parse($order->details->first()->bundle->opening_time))
+            ->first();
 
         if (!$order) {
             return response()->json(['status' => true, 'data' => null]);
@@ -130,8 +131,25 @@ class OrderController extends Controller
 
         $now             = Carbon::now();
         $collectionStart = Carbon::parse($bundle->opening_time);
-        $collectionEnd   = $bundle->ended_time ? Carbon::parse($bundle->ended_time) : null;
-        $secondsUntil    = max(0, $now->diffInSeconds($collectionStart, false));
+
+        // ended_time عمود TIME (وقت بدون تاريخ)، فنركّبه على تاريخ بداية الاستلام.
+        $collectionEnd = null;
+        if ($bundle->ended_time) {
+            $endTime = Carbon::parse($bundle->ended_time);
+            $collectionEnd = $collectionStart->copy()->setTime(
+                (int) $endTime->format('H'),
+                (int) $endTime->format('i'),
+                (int) $endTime->format('s')
+            );
+
+            // لو وقت الإغلاق أبكر من وقت الفتح فالفترة بتمتد لليوم التالي.
+            if ($collectionEnd->lessThan($collectionStart)) {
+                $collectionEnd->addDay();
+            }
+        }
+
+        // لازم يكون عدد صحيح موجب — التطبيق بيرفض string أو float.
+        $secondsUntil = (int) max(0, $now->diffInSeconds($collectionStart, false));
 
         // "Collection starts at 18:00 tomorrow" vs "Collection starts in HH:MM:SS"
         if ($collectionStart->isToday()) {
@@ -145,10 +163,12 @@ class OrderController extends Controller
         return response()->json([
             'status' => true,
             'data'   => [
-                'order_id'                 => $order->id,
-                'bundle_id'                => $bundle->id,
-                'bundle_name'              => $bundle->name,
-                'bundle_image'             => $bundle->image ? asset($bundle->image) : null,
+                'order_id'                 => (int) $order->id,
+                'bundle_id'                => (int) $bundle->id,
+                'bundle_name'              => (string) $bundle->name,
+                'bundle_image'             => $bundle->image
+                    ? (Str::startsWith($bundle->image, ['http://', 'https://']) ? $bundle->image : asset($bundle->image))
+                    : '',
                 'collection_start'         => $collectionStart->toIso8601String(),
                 'collection_end'           => $collectionEnd?->toIso8601String(),
                 'status'                   => $order->status,
