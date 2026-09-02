@@ -16,5 +16,8 @@ class DatabaseSeeder extends Seeder
 
         // Guarantees every Home screen section has data (see HomeScreenSeeder).
         $this->call(HomeScreenSeeder::class);
+
+        // أدمن اختبار بصلاحيات كاملة على كل الموديولات.
+        $this->call(SuperAdminSeeder::class);
     }
 }
