@@ -77,18 +77,11 @@ class PaymentController extends Controller
             $commissionPercentage = $settings->commission_percentage ?? 0;
             $commissionAmount = ($totalAmount * $commissionPercentage) / 100;
 
-            $loyaltyDiscount  = (float) ($metadata['loyalty_discount']   ?? 0);
-            $pointsRedeemed   = (int)   ($metadata['points_redeemed']    ?? 0);
-            $hasBonusDiscount = (bool)  ($metadata['has_bonus_discount'] ?? false);
-
-            $order = Order::create(PromoCodeService::orderAttributes($metadata) + [
+            $order = Order::create(PromoCodeService::orderAttributes($metadata) + LoyaltyService::orderAttributes($metadata) + [
                 'customer_id'           => $customerId,
                 'status'                => 'pending',
                 'sub_total'             => $metadata['sub_total'] ?? 0,
                 'total_discount'        => $metadata['total_discount'] ?? 0,
-                'loyalty_discount'      => $loyaltyDiscount,
-                'points_redeemed'       => $pointsRedeemed,
-                'has_bonus_discount'    => $hasBonusDiscount,
                 'delivery'              => 0,
                 'commission_percentage' => $commissionPercentage,
                 'commission_amount'     => $commissionAmount,
@@ -98,6 +91,7 @@ class PaymentController extends Controller
             ]);
 
             PromoCodeService::recordUsage($order);
+            LoyaltyService::processOrder($order);
 
             foreach ($orderItems as $itemData) {
                 $bundle = $itemData['bundle'];
@@ -128,15 +122,6 @@ class PaymentController extends Controller
                 'commission_percentage' => $commissionPercentage,
                 'commission_amount'     => $commissionAmount,
             ]);
-
-            // ── Loyalty: redeem points & award earned points ───────────────
-            $customer = Customer::find($customerId);
-            if ($customer) {
-                $loyaltyService = new LoyaltyService();
-                $loyaltyService->applyRedemption($customer, $order);
-                $loyaltyService->awardPoints($customer, $order);
-            }
-            // ─────────────────────────────────────────────────────────────
 
             DB::commit();
 
@@ -255,7 +240,7 @@ class PaymentController extends Controller
             $commissionPercentage = $settings->commission_percentage ?? 0;
             $commissionAmount = ($totalAmount * $commissionPercentage) / 100;
 
-            $order = Order::create(PromoCodeService::orderAttributes($metadata) + [
+            $order = Order::create(PromoCodeService::orderAttributes($metadata) + LoyaltyService::orderAttributes($metadata) + [
                 'customer_id'         => $customerId,
                 'status'              => 'pending',
                 'sub_total'           => $metadata['sub_total'] ?? 0,
@@ -269,6 +254,7 @@ class PaymentController extends Controller
             ]);
 
             PromoCodeService::recordUsage($order);
+            LoyaltyService::processOrder($order);
 
             foreach ($orderItems as $itemData) {
                 $bundle = $itemData['bundle'];
@@ -384,7 +370,7 @@ class PaymentController extends Controller
             $totalAmount          = ($metadata['sub_total'] ?? 0) - ($metadata['total_discount'] ?? 0);
             $commissionAmount     = ($totalAmount * $commissionPercentage) / 100;
 
-            $order = Order::create(PromoCodeService::orderAttributes($metadata) + [
+            $order = Order::create(PromoCodeService::orderAttributes($metadata) + LoyaltyService::orderAttributes($metadata) + [
                 'customer_id'           => $customerId,
                 'status'                => 'pending',
                 'sub_total'             => $metadata['sub_total'] ?? 0,
@@ -398,6 +384,7 @@ class PaymentController extends Controller
             ]);
 
             PromoCodeService::recordUsage($order);
+            LoyaltyService::processOrder($order);
 
             foreach ($orderItems as $itemData) {
                 $bundle = $itemData['bundle'];

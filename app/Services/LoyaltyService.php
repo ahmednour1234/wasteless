@@ -97,6 +97,29 @@ class LoyaltyService
      * window if a fresh redemption happened, and log everything.
      * Call this inside a DB transaction after the Order has been created.
      */
+    /** Order columns built from the transaction metadata. */
+    public static function orderAttributes(array $metadata): array
+    {
+        return [
+            'loyalty_discount'   => (float) ($metadata['loyalty_discount']   ?? 0),
+            'points_redeemed'    => (int)   ($metadata['points_redeemed']    ?? 0),
+            'has_bonus_discount' => (bool)  ($metadata['has_bonus_discount'] ?? false),
+        ];
+    }
+
+    /** Redeem points & award earned points once the paid order exists. Call inside the DB transaction. */
+    public static function processOrder(Order $order): void
+    {
+        $customer = Customer::find($order->customer_id);
+        if (!$customer) {
+            return;
+        }
+
+        $service = new self();
+        $service->applyRedemption($customer, $order);
+        $service->awardPoints($customer, $order);
+    }
+
     public function applyRedemption(Customer $customer, Order $order): void
     {
         $pointsToDeduct = $order->points_redeemed;
