@@ -15,6 +15,7 @@ use App\Http\Controllers\dashboard\CompanyController;
 use App\Http\Controllers\dashboard\CustomerController;
 use App\Http\Controllers\dashboard\TransactionController;
 use App\Http\Controllers\dashboard\LoyaltyController;
+use App\Http\Controllers\dashboard\PromoCodeController;
 
 Route::middleware('auth')
   ->get('/', [Analytics::class, 'index'])
@@ -88,6 +89,9 @@ Route::put('companies/{company}/update-password', [CompanyController::class, 'up
       Route::get('/', [LoyaltyController::class, 'index'])->name('index');
       Route::get('/{customer}', [LoyaltyController::class, 'show'])->name('show');
     });
+
+  Route::patch('promo-codes/{promoCode}/toggle', [PromoCodeController::class, 'toggle'])->name('promo-codes.toggle');
+  Route::resource('promo-codes', PromoCodeController::class);
 
   Route::prefix('reviews')
     ->name('reviews.')

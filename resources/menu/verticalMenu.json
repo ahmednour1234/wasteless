@@ -115,6 +115,18 @@
       ]
     },
     {
+      "name": "Promo Codes",
+      "icon": "menu-icon tf-icons ti ti-discount-2",
+      "slug": "promo-codes",
+      "submenu": [
+        {
+          "url": "/promo-codes",
+          "name": "Promo Codes",
+          "slug": "promo-codes.index"
+        }
+      ]
+    },
+    {
       "name": "Settings",
       "icon": "menu-icon tf-icons ti ti-layout-sidebar",
       "slug": "settings",

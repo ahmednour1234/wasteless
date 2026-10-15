@@ -97,6 +97,7 @@
           <th>Status</th>
           <th>Subtotal</th>
           <th>Discount</th>
+          <th>Promo Code</th>
           <th>Total</th>
           <th># Bundles</th>
           <th>Details</th>
@@ -110,8 +111,19 @@
           <td><span class="badge bg-info text-capitalize">{{ $order->status }}</span></td>
           <td>{{ number_format($order->sub_total, 2) }} USD</td>
           <td class="text-danger">-{{ number_format($order->total_discount, 2) }} USD</td>
+          <td>
+            @if ($order->promo_code)
+              <span class="badge bg-label-success">{{ $order->promo_code }}</span>
+              <small class="d-block text-muted">
+                {{ $order->promo_type === 'percentage' ? rtrim(rtrim(number_format($order->promo_value, 2), '0'), '.') . '%' : number_format($order->promo_value, 2) . ' USD' }}
+                · -{{ number_format($order->promo_discount, 2) }} USD
+              </small>
+            @else
+              <span class="text-muted">—</span>
+            @endif
+          </td>
           <td class="text-success">
-            {{ number_format($order->sub_total + $order->delivery - $order->total_discount, 2) }} USD
+            {{ number_format($order->sub_total + $order->delivery - $order->total_discount - $order->loyalty_discount - $order->promo_discount, 2) }} USD
           </td>
           <td><span class="badge bg-secondary">{{ $order->details->count() }}</span></td>
           <td>
@@ -120,7 +132,7 @@
         </tr>
         @empty
         <tr>
-          <td colspan="8" class="text-center">No orders found</td>
+          <td colspan="9" class="text-center">No orders found</td>
         </tr>
         @endforelse
       </tbody>

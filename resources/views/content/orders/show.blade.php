@@ -72,9 +72,29 @@
             <div class="card p-3 shadow-sm border-start border-success border-4">
                 <strong>Total</strong>
                 <div class="fs-5 text-success">
-                    {{ number_format($order->sub_total + $order->delivery - $order->total_discount, 2) }} USD
+                    {{ number_format($order->sub_total + $order->delivery - $order->total_discount - $order->loyalty_discount - $order->promo_discount, 2) }} USD
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Promo Code -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex flex-wrap gap-4 align-items-center">
+            <strong>Promo Code:</strong>
+            @if ($order->promo_code)
+                <span class="badge bg-success fs-6">{{ $order->promo_code }}</span>
+                <span>
+                    Type: <strong>{{ $order->promo_type === 'percentage' ? 'Percentage' : 'Fixed amount' }}</strong>
+                    ({{ $order->promo_type === 'percentage' ? rtrim(rtrim(number_format($order->promo_value, 2), '0'), '.') . '%' : number_format($order->promo_value, 2) . ' USD' }})
+                </span>
+                <span class="text-danger">Promo discount: -{{ number_format($order->promo_discount, 2) }} USD</span>
+            @else
+                <span class="text-muted">No promo code applied</span>
+            @endif
+            @if ($order->loyalty_discount > 0)
+                <span class="text-danger">Loyalty discount: -{{ number_format($order->loyalty_discount, 2) }} USD</span>
+            @endif
         </div>
     </div>
 

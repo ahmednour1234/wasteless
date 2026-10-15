@@ -17,6 +17,7 @@ use App\Http\Controllers\API\User\OrderController;
 use App\Http\Controllers\API\User\StoreRecommendationController;
 use App\Http\Controllers\API\User\PaymentController;
 use App\Http\Controllers\API\User\LoyaltyController;
+use App\Http\Controllers\API\User\PromoCodeController;
 
 Route::prefix('companies')->group(function () {
   Route::post('signup',     [CompanyAuthController::class, 'signup']);
@@ -96,6 +97,8 @@ Route::prefix('user')->group(function () {
             });
 
             Route::post('store-recommendations', [StoreRecommendationController::class, 'store']);
+
+            Route::post('promo-codes/apply', [PromoCodeController::class, 'apply']);
 
             Route::prefix('loyalty')->group(function () {
                 Route::get('/', [LoyaltyController::class, 'index']);

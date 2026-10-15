@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Setting;
 use App\Services\PaymentService;
+use App\Services\PromoCodeService;
 use App\Services\LoyaltyService;
 use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
@@ -80,7 +81,7 @@ class PaymentController extends Controller
             $pointsRedeemed   = (int)   ($metadata['points_redeemed']    ?? 0);
             $hasBonusDiscount = (bool)  ($metadata['has_bonus_discount'] ?? false);
 
-            $order = Order::create([
+            $order = Order::create(PromoCodeService::orderAttributes($metadata) + [
                 'customer_id'           => $customerId,
                 'status'                => 'pending',
                 'sub_total'             => $metadata['sub_total'] ?? 0,
@@ -95,6 +96,8 @@ class PaymentController extends Controller
                 'name'                  => $metadata['name'] ?? '',
                 'phone'                 => $metadata['phone'] ?? '',
             ]);
+
+            PromoCodeService::recordUsage($order);
 
             foreach ($orderItems as $itemData) {
                 $bundle = $itemData['bundle'];
@@ -252,7 +255,7 @@ class PaymentController extends Controller
             $commissionPercentage = $settings->commission_percentage ?? 0;
             $commissionAmount = ($totalAmount * $commissionPercentage) / 100;
 
-            $order = Order::create([
+            $order = Order::create(PromoCodeService::orderAttributes($metadata) + [
                 'customer_id'         => $customerId,
                 'status'              => 'pending',
                 'sub_total'           => $metadata['sub_total'] ?? 0,
@@ -264,6 +267,8 @@ class PaymentController extends Controller
                 'name'                => $metadata['name'] ?? '',
                 'phone'               => $metadata['phone'] ?? '',
             ]);
+
+            PromoCodeService::recordUsage($order);
 
             foreach ($orderItems as $itemData) {
                 $bundle = $itemData['bundle'];
@@ -379,7 +384,7 @@ class PaymentController extends Controller
             $totalAmount          = ($metadata['sub_total'] ?? 0) - ($metadata['total_discount'] ?? 0);
             $commissionAmount     = ($totalAmount * $commissionPercentage) / 100;
 
-            $order = Order::create([
+            $order = Order::create(PromoCodeService::orderAttributes($metadata) + [
                 'customer_id'           => $customerId,
                 'status'                => 'pending',
                 'sub_total'             => $metadata['sub_total'] ?? 0,
@@ -391,6 +396,8 @@ class PaymentController extends Controller
                 'name'                  => $metadata['name'] ?? '',
                 'phone'                 => $metadata['phone'] ?? '',
             ]);
+
+            PromoCodeService::recordUsage($order);
 
             foreach ($orderItems as $itemData) {
                 $bundle = $itemData['bundle'];

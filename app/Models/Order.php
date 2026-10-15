@@ -10,6 +10,7 @@ class Order extends Model
     protected $fillable = [
         'customer_id', 'status', 'sub_total', 'total_discount', 'delivery', 'address', 'phone', 'name',
         'loyalty_discount', 'points_redeemed', 'has_bonus_discount',
+        'promo_code_id', 'promo_code', 'promo_type', 'promo_value', 'promo_discount',
         'commission_percentage', 'commission_amount',
     ];
 
@@ -26,6 +27,11 @@ class Order extends Model
     public function transaction()
     {
         return $this->hasOne(Transaction::class);
+    }
+
+    public function promoCode()
+    {
+        return $this->belongsTo(PromoCode::class);
     }
 
     public function loyaltyTransactions()

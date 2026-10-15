@@ -15,6 +15,7 @@ use App\Models\Transaction;
 use App\Http\Resources\OrderResource;
 use App\Services\PaymentService;
 use App\Services\LoyaltyService;
+use App\Services\PromoCodeService;
 use Exception;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -174,6 +175,7 @@ class OrderController extends Controller
             'name'                  => 'nullable|string',
             'phone'                 => 'nullable|string',
             'payment_type'          => 'nullable|in:whish_money,omt_pay,bank,bank_transfer',
+            'promo_code'            => 'nullable|string|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -225,12 +227,32 @@ class OrderController extends Controller
             $orderName  = $request->input('name')  ?: $customer->name;
             $orderPhone = $request->input('phone') ?: $customer->phone;
 
+            $netAfterBundleDiscount = $totalSub - $totalDiscount;
+
+            // ── Promo code ─────────────────────────────────────────────────
+            $promoService  = new PromoCodeService();
+            $promo         = null;
+            $promoDiscount = 0;
+            if ($request->filled('promo_code')) {
+                try {
+                    $promoResult   = $promoService->validate($request->promo_code, $customer, $netAfterBundleDiscount);
+                    $promo         = $promoResult['promo'];
+                    $promoDiscount = $promoResult['discount'];
+                } catch (Exception $e) {
+                    return response()->json([
+                        'status'  => false,
+                        'message' => $e->getMessage(),
+                    ], 422);
+                }
+            }
+            $netAfterPromo = $netAfterBundleDiscount - $promoDiscount;
+            // ───────────────────────────────────────────────────────────────
+
             // ── Loyalty discount ───────────────────────────────────────────
             $loyaltyService         = new LoyaltyService();
             $loyaltyInfo            = $loyaltyService->checkAndApplyRedemption($customer);
-            $netAfterBundleDiscount = $totalSub - $totalDiscount;
-            $loyaltyDiscount        = round($netAfterBundleDiscount * $loyaltyInfo['total_discount_pct'] / 100, 2);
-            $totalAmount            = max(0, $netAfterBundleDiscount - $loyaltyDiscount);
+            $loyaltyDiscount        = round($netAfterPromo * $loyaltyInfo['total_discount_pct'] / 100, 2);
+            $totalAmount            = max(0, $netAfterPromo - $loyaltyDiscount);
             // ───────────────────────────────────────────────────────────────
 
             $appUrl = config('app.url');
@@ -251,7 +273,7 @@ class OrderController extends Controller
                 'failure_callback_url' => $baseUrl . '/user/payments/callback/failure',
                 'success_redirect_url' => $request->input('success_redirect_url', $baseUrl . '/user/payments/callback/success'),
                 'failure_redirect_url' => $request->input('failure_redirect_url', $baseUrl . '/user/payments/callback/failure'),
-                'metadata' => [
+                'metadata' => $promoService->toMetadata($promo, $promoDiscount) + [
                     'customer_id'        => $customer->id,
                     'items'              => $orderItems,
                     'address'            => $request->input('address', ''),
@@ -290,6 +312,16 @@ class OrderController extends Controller
                 'transaction_id' => $transaction->id,
                 'payment_type'   => $paymentType,
                 'collect_url'    => $paymentResult['collect_url'],
+                'summary'        => [
+                    'sub_total'        => round($totalSub, 2),
+                    'bundle_discount'  => round($totalDiscount, 2),
+                    'promo_code'       => $promo?->code,
+                    'promo_type'       => $promo?->type,
+                    'promo_value'      => $promo?->value,
+                    'promo_discount'   => $promoDiscount,
+                    'loyalty_discount' => $loyaltyDiscount,
+                    'total'            => round($totalAmount, 2),
+                ],
             ], 201);
         } catch (Exception $e) {
             return response()->json([

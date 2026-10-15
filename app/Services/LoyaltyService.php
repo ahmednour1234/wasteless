@@ -143,7 +143,7 @@ class LoyaltyService
      */
     public function awardPoints(Customer $customer, Order $order): void
     {
-        $amountPaid = max(0, $order->sub_total - $order->total_discount - $order->loyalty_discount);
+        $amountPaid = max(0, $order->sub_total - $order->total_discount - $order->loyalty_discount - ($order->promo_discount ?? 0));
 
         if ($amountPaid <= 0) {
             return;

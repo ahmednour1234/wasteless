@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Setting;
 use App\Services\PaymentService;
+use App\Services\PromoCodeService;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -67,7 +68,7 @@ class TransactionController extends Controller
             $commissionPercentage = $settings->commission_percentage ?? 0;
             $commissionAmount = ($totalAmount * $commissionPercentage) / 100;
 
-            $order = Order::create([
+            $order = Order::create(PromoCodeService::orderAttributes($metadata) + [
                 'customer_id'         => $customerId,
                 'status'              => 'pending',
                 'sub_total'           => $metadata['sub_total'] ?? 0,
@@ -79,6 +80,8 @@ class TransactionController extends Controller
                 'name'                => $metadata['name'] ?? '',
                 'phone'               => $metadata['phone'] ?? '',
             ]);
+
+            PromoCodeService::recordUsage($order);
 
             foreach ($orderItems as $itemData) {
                 $bundle = $itemData['bundle'];
