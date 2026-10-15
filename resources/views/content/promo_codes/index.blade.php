@@ -7,12 +7,22 @@
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.toggle-status').forEach(el => {
         el.addEventListener('change', e => {
-            fetch(`/promo-codes/${e.target.dataset.id}/toggle`, {
+            const input = e.target;
+            fetch(input.dataset.url, {
                 method: 'PATCH',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Accept': 'application/json'
                 }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(res.status);
+                return res.json();
+            })
+            .then(data => { input.checked = !!data.status; })
+            .catch(() => {
+                input.checked = !input.checked;
+                alert('Failed to update status');
             });
         });
     });
@@ -94,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>
                 <div class="form-check form-switch d-flex justify-content-center">
                     <input class="form-check-input toggle-status" type="checkbox"
-                           data-id="{{ $promo->id }}" {{ $promo->is_active ? 'checked' : '' }}>
+                           data-url="{{ route('promo-codes.toggle', $promo) }}" {{ $promo->is_active ? 'checked' : '' }}>
                 </div>
             </td>
             <td class="text-nowrap">
