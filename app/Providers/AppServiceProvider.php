@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Carbon\Carbon;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // 1) اضبط الـ PHP timezone
         date_default_timezone_set(config('app.timezone'));
+
+        // الداشبورد Bootstrap مش Tailwind، فالـ pagination الافتراضي بيطلع مكسور.
+        Paginator::useBootstrapFive();
 
         // 2) اجبر Carbon على استعمال توقيت القاهرة عند التسلسل
         Carbon::serializeUsing(function (Carbon $date) {
