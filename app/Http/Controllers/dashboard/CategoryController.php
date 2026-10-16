@@ -30,7 +30,10 @@ class CategoryController extends Controller
         }
 
         $categories = $query->latest()->paginate(10)->withQueryString();
-        return view('content.categories.index', compact('categories','request'));
+        $totalCount  = Category::count();
+        $activeCount = Category::where('is_active', 1)->count();
+
+        return view('content.categories.index', compact('categories', 'request', 'totalCount', 'activeCount'));
     }
 
     /* create */

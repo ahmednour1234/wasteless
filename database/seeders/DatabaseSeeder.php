@@ -19,5 +19,7 @@ class DatabaseSeeder extends Seeder
 
         // أدمن اختبار بصلاحيات كاملة على كل الموديولات.
         $this->call(SuperAdminSeeder::class);
+
+        $this->call(PromoCodeSeeder::class);
     }
 }
