@@ -27,20 +27,23 @@
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.toggle-active').forEach(function (checkbox) {
       checkbox.addEventListener('change', function () {
-        const id = this.dataset.id;
-        fetch(`/bundels/${id}/toggle`, {
+        const input = this;
+        fetch(input.dataset.url, {
           method: 'POST',
           headers: {
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           }
-        }).then(res => res.json())
-          .then(data => {
-            // يمكن إضافة Toast هنا عند الحاجة
-          }).catch(() => {
+        }).then(res => {
+            if (!res.ok) throw new Error(res.status);
+            return res.json();
+          })
+          .then(data => { input.checked = !!data.status; })
+          .catch(() => {
             // في حال الخطأ أعد الحالة إلى ما كانت عليه
-            this.checked = !this.checked;
+            input.checked = !input.checked;
+            alert('Failed to update status');
           });
       });
     });
@@ -184,7 +187,7 @@
             </td>
             <td>
               <div class="form-check form-switch mb-0">
-                <input class="form-check-input toggle-active" type="checkbox" data-id="{{ $bundle->id }}" {{ $bundle->active ? 'checked' : '' }}>
+                <input class="form-check-input toggle-active" type="checkbox" data-url="{{ route('bundels.toggle', $bundle) }}" {{ $bundle->active ? 'checked' : '' }}>
               </div>
             </td>
                <td class="text-end">

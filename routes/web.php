@@ -71,8 +71,7 @@ Route::put('companies/{company}/update-password', [CompanyController::class, 'up
             Route::get('/create', [BundleController::class, 'create'])->name('create');
 
       Route::get('/show/{bundle}', [BundleController::class, 'show'])->name('show');
-      Route::post('/{id}/toggle', [BundleController::class, 'toggle'])->name('toggle');
-       Route::post('/{id}/toggle', [BundleController::class, 'toggle'])->name('toggle');
+      Route::post('/{bundle}/toggle', [BundleController::class, 'toggle'])->name('toggle');
         Route::post('/store', [BundleController::class, 'store'])->name('store');
     });
   Route::prefix('customers')
